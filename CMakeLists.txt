@@ -41,8 +41,8 @@ target_link_libraries(daikon_app PRIVATE daikon_lib)
     enable_testing()
 
     set(TEST_SOURCES
-        tests/test_types.cpp
-        tests/test_memory.cpp
+        Tests/test_types.cpp
+        Tests/test_memory.cpp
     )
 
     add_executable(daikon_tests ${TEST_SOURCES})
