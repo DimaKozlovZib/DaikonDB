@@ -1,9 +1,7 @@
 #pragma once
-
 #include <chrono>
 #include <cstdint>
 #include <string_view>
-#include "../TrackingAllocator.h"
 
 namespace daikon::core::types {
 
@@ -19,29 +17,31 @@ enum class DataType : uint8_t {
 };
 
 struct BaseDataObject {
+   protected:
     DataType type = DataType::kNone;
     uint32_t allocated_size = 0;
     TimePoint expires_at;
 
+   public:
     explicit BaseDataObject(DataType t) : type(t), expires_at{} {}
+    virtual ~BaseDataObject() = default;
 
-    static void* operator new(std::size_t size, mem::IMemoryTracker* tracker) {
-        if (tracker) {
-            tracker->OnAllocate(size);
-        }
-        return ::operator new(size);
+    bool HasTtl() const { return expires_at != TimePoint{}; }
+    bool IsExpired() const {
+        return HasTtl() && Clock::now() >= expires_at;
+    }
+    void SetTTL(std::chrono::seconds seconds) {
+        expires_at = Clock::now() + seconds;
     }
 
-    static void operator delete(void* ptr, std::size_t size) {
-        ::operator delete(ptr);
-    }
+    DataType GetType() const { return type; }
+    TimePoint GetTtl() const { return expires_at; }
+    uint32_t GetMemoryUsage() const { return allocated_size; }
 
-    static void operator delete(void* ptr, mem::IMemoryTracker* tracker) {
-        if (tracker) {
-            tracker->OnDeallocate(sizeof(BaseDataObject));
-        }
-        ::operator delete(ptr);
-    }
+    virtual struct StringObject* AsString() { return nullptr; }
+    virtual struct ListObject* AsList() { return nullptr; }
+    virtual struct SetObject* AsSet() { return nullptr; }
+    virtual struct GeoObject* AsGeo() { return nullptr; }
 };
 
 } // namespace daikon::core::types

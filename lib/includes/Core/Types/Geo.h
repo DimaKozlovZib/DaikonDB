@@ -1,15 +1,14 @@
 #pragma once
-
 #include <algorithm>
 #include <cmath>
 #include <optional>
-#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
 
-#include "../TrackingAllocator.h"
+#include "../memory/TrackingAllocator.h"
 #include "BaseDataObject.h"
+#include "../../Commands.h"
 
 namespace daikon::core::types {
 
@@ -19,12 +18,10 @@ struct GeoPoint {
 };
 
 namespace detail {
-
 inline constexpr double kEarthRadiusKm = 6372.8;
-inline constexpr double kPi = 3.14159265358979323846264338327950288;
+inline constexpr double kPi = 3.14159265358979323846;
 
-inline double Haversine(double lon1, double lat1, double lon2, double lat2,
-                        std::string_view unit) {
+inline double Haversine(double lon1, double lat1, double lon2, double lat2, std::string_view unit) {
     double dlon = (lon2 - lon1) * kPi / 180.0;
     double dlat = (lat2 - lat1) * kPi / 180.0;
     double a = std::sin(dlat / 2) * std::sin(dlat / 2) + std::cos(lat1 * kPi / 180.0) * std::cos(lat2 * kPi / 180.0) * std::sin(dlon / 2) * std::sin(dlon / 2);
@@ -35,95 +32,73 @@ inline double Haversine(double lon1, double lat1, double lon2, double lat2,
     if (unit == "ft") return km * 3280.84;
     return km * 1000.0;
 }
-
 } // namespace detail
 
-struct GeoObject : public BaseDataObject {
-    using TrackingString =
-        std::basic_string<char, std::char_traits<char>, mem::TrackingAllocator<char>>;
+struct GeoObject final : public BaseDataObject {
+    using TrackingString = std::basic_string<char, std::char_traits<char>, mem::TrackingAllocator<char>>;
     using Allocator = mem::TrackingAllocator<std::pair<const TrackingString, GeoPoint>>;
 
-    std::unordered_map<TrackingString, GeoPoint, std::hash<TrackingString>, std::equal_to<TrackingString>, Allocator>
-        points;
+    std::unordered_map<TrackingString, GeoPoint, std::hash<TrackingString>, std::equal_to<TrackingString>, Allocator> points;
 
     explicit GeoObject(mem::IMemoryTracker* tracker)
         : BaseDataObject(DataType::kGeo),
-          points(Allocator(tracker, &this->allocated_size)) {}
+          points(Allocator(tracker, &allocated_size)) {}
 
-    static int64_t PredictAddDelta(std::string_view member) {
-        return static_cast<int64_t>(member.size() + sizeof(GeoPoint) + 48);
-    }
+    GeoObject* AsGeo() override { return this; }
 
     void Add(double lon, double lat, std::string_view member) {
-        points.try_emplace(
-            TrackingString(member, points.get_allocator()),
-            GeoPoint{lon, lat});
+        points.try_emplace(TrackingString(member.data(), member.size(), points.get_allocator()), GeoPoint{lon, lat});
     }
 
-    std::vector<std::optional<std::pair<double, double>>> Pos(
-        const std::vector<std::string_view>& members) const {
+    std::vector<std::optional<std::pair<double, double>>> Pos(const std::vector<std::string_view>& members) const {
         std::vector<std::optional<std::pair<double, double>>> result;
         result.reserve(members.size());
+
         for (const auto& m : members) {
-            auto it = points.find(TrackingString(m, points.get_allocator()));
-            if (it != points.end()) {
+            auto it = points.find(TrackingString(m.data(), m.size(), points.get_allocator()));
+            if (it != points.end())
                 result.emplace_back(std::make_pair(it->second.longitude, it->second.latitude));
-            } else {
+            else
                 result.emplace_back(std::nullopt);
-            }
         }
         return result;
     }
 
-    std::optional<double> Dist(std::string_view member1, std::string_view member2,
-                               std::string_view unit = "m") const {
-        auto it1 = points.find(TrackingString(member1, points.get_allocator()));
-        auto it2 = points.find(TrackingString(member2, points.get_allocator()));
+    std::optional<double> Dist(std::string_view member1, std::string_view member2, std::string_view unit = "m") const {
+        auto it1 = points.find(TrackingString(member1.data(), member1.size(), points.get_allocator()));
+        auto it2 = points.find(TrackingString(member2.data(), member2.size(), points.get_allocator()));
+
         if (it1 == points.end() || it2 == points.end()) return std::nullopt;
         return detail::Haversine(it1->second.longitude, it1->second.latitude,
                                  it2->second.longitude, it2->second.latitude, unit);
     }
 
-    std::vector<std::string_view> Search(double lon, double lat, double radius,
-                                         std::string_view unit, bool asc = false,
-                                         std::optional<int64_t> count = std::nullopt) const {
+    std::vector<std::string_view> Search(double lon, double lat, double radius, std::string_view unit, bool asc = false, std::optional<int64_t> count = std::nullopt) const {
         std::vector<std::pair<std::string_view, double>> results;
         for (const auto& [name, pt] : points) {
             double d = detail::Haversine(lon, lat, pt.longitude, pt.latitude, unit);
             if (d <= radius) results.emplace_back(name, d);
         }
-
-        auto comp = [asc](const auto& a, const auto& b) {
-            return asc ? a.second < b.second : a.second > b.second;
-        };
-
+        auto comp = [asc](const auto& a, const auto& b) { return asc ? a.second < b.second : a.second > b.second; };
         if (count.has_value() && *count > 0 && results.size() > static_cast<size_t>(*count)) {
             std::partial_sort(results.begin(), results.begin() + *count, results.end(), comp);
             results.resize(*count);
         } else {
             std::sort(results.begin(), results.end(), comp);
         }
-
         std::vector<std::string_view> out;
         out.reserve(results.size());
-        for (auto& [name, _] : results) {
+        for (auto& [name, _] : results)
             out.emplace_back(name);
-        }
         return out;
     }
 
-    std::vector<std::pair<std::string_view, GeoPoint>> SearchPoints(
-        double lon, double lat, double radius, std::string_view unit, bool asc = false,
-        std::optional<int64_t> count = std::nullopt) const {
+    std::vector<std::pair<std::string_view, GeoPoint>> SearchPoints(double lon, double lat, double radius, std::string_view unit, bool asc = false, std::optional<int64_t> count = std::nullopt) const {
         std::vector<std::pair<std::string_view, std::pair<double, GeoPoint>>> tmp;
         for (const auto& [name, pt] : points) {
             double d = detail::Haversine(lon, lat, pt.longitude, pt.latitude, unit);
-            if (d <= radius) {
-                tmp.emplace_back(std::string_view(name.data(), name.size()),
-                                 std::make_pair(d, pt));
-            }
+            if (d <= radius) tmp.emplace_back(std::string_view(name.data(), name.size()), std::make_pair(d, pt));
         }
-
         auto comp = [asc](const auto& a, const auto& b) {
             return asc ? a.first < b.first : a.first > b.first;
         };
@@ -137,10 +112,34 @@ struct GeoObject : public BaseDataObject {
 
         std::vector<std::pair<std::string_view, GeoPoint>> out;
         out.reserve(tmp.size());
-        for (auto& [name, dist_pt] : tmp) {
+
+        for (auto& [name, dist_pt] : tmp)
             out.emplace_back(name, dist_pt.second);
-        }
         return out;
+    }
+
+    struct MemoryView {
+        const GeoObject& obj;
+        int64_t EstimateAdd(std::string_view member) const {
+            return member.size() + sizeof(GeoPoint) + 48;
+        }
+
+        static int64_t EstimateAddNew(std::string_view member) {
+            return member.size() + sizeof(GeoPoint) + 48;
+        }
+
+        static int64_t EstimateCreateWithPoints(const std::vector<::daikon::commands::GeoPoint>& points) {
+            int64_t delta = EstimateCreate();
+            for (const auto& pt : points)
+                delta += EstimateAddNew(pt.member);
+            return delta;
+        }
+    };
+
+    MemoryView GetMemoryView() const { return MemoryView{*this}; }
+
+    static int64_t EstimateCreate() {
+        return sizeof(GeoObject);
     }
 };
 

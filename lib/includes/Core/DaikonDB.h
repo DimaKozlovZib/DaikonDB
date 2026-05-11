@@ -10,21 +10,19 @@
 #include <string_view>
 #include <vector>
 
-#include "Commands.h"
-#include "DB.h"
-#include "DBResults.h"
-#include "Types/DataObject.h"
-#include "Types/Geo.h"
-#include "Types/List.h"
-#include "Types/MemoryPredictor.h"
-#include "Types/Set.h"
-#include "Types/String.h"
+#include "../Commands.h"
+#include "storage/database.h"
+#include "results.h"
+#include "types/Geo.h"
+#include "types/List.h"
+#include "types/Set.h"
+#include "types/String.h"
 
 namespace daikon {
 
-class DaikonDataBase {
+class DaikonDatabase {
    public:
-    explicit DaikonDataBase(core::DBase& db, std::size_t maxmemory = 0)
+    explicit DaikonDatabase(core::DBase& db, std::size_t maxmemory = 0)
         : db_(db), maxmemory_(maxmemory) {}
 
     void SetMaxMemory(std::size_t mem) { maxmemory_ = mem; }
@@ -101,11 +99,6 @@ class DaikonDataBase {
     int64_t PredictKeyOverhead(std::string_view key) {
         return static_cast<int64_t>(key.size() + 32);
     }
-
-    using StringPredictor = core::types::MemoryPredictor<core::types::StringObject>;
-    using ListPredictor = core::types::MemoryPredictor<core::types::ListObject>;
-    using SetPredictor = core::types::MemoryPredictor<core::types::SetObject>;
-    using GeoPredictor = core::types::MemoryPredictor<core::types::GeoObject>;
 };
 
 } // namespace daikon

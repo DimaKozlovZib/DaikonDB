@@ -5,17 +5,48 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(SOURCES 
-    lib/src/main.cpp
-    lib/src/CommandParser.cpp
-    lib/src/Tokenizer.cpp
+include(FetchContent)
+
+set(LIB_SOURCES
+    lib/src/Database/DaikonDB_Common.cpp
+    lib/src/Database/DaikonDB_Geo.cpp
+    lib/src/Database/DaikonDB_List.cpp
+    lib/src/Database/DaikonDB_Set.cpp
+    lib/src/Database/DaikonDB_String.cpp
+    lib/src/Parsing/CommandParser.cpp
+    lib/src/Parsing/Tokenizer.cpp
 )
 
-add_executable(daikon_app ${SOURCES})
+add_library(daikon_lib STATIC ${LIB_SOURCES})
+target_include_directories(daikon_lib PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/lib/include
+)
 
-add_library(daikon_lib INTERFACE)
-target_include_directories(daikon_lib INTERFACE include/)
+set(APP_SOURCES
+    lib/src/main.cpp
+)
 
+add_executable(daikon_app ${APP_SOURCES})
 target_link_libraries(daikon_app PRIVATE daikon_lib)
 
-target_include_directories(daikon_app PRIVATE include)
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.14.0
+    )
+
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+
+    enable_testing()
+
+    set(TEST_SOURCES
+        tests/test_types.cpp
+        tests/test_memory.cpp
+    )
+
+    add_executable(daikon_tests ${TEST_SOURCES})
+    target_link_libraries(daikon_tests PRIVATE daikon_lib gtest gtest_main)
+    target_include_directories(daikon_tests PRIVATE ${CMAKE_CURRENT_LIST_DIR}/lib/include)
+    include(GoogleTest)
+    gtest_discover_tests(daikon_tests)

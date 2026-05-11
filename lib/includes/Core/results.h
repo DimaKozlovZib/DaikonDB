@@ -1,5 +1,6 @@
-
 #pragma once
+
+#include <concepts>
 #include <expected>
 #include <optional>
 #include <string_view>
@@ -37,9 +38,8 @@ struct ListViewResult {
 struct IntResult {
     int64_t value = 0;
 
-    IntResult(int num) :value(num) {}
-    IntResult(size_t num) :value(num) {}
-    IntResult(int64_t num) :value(num) {}
+    template <std::integral N>
+    IntResult(N num) :value(num) {}
 };
 
 struct StatusResult {
