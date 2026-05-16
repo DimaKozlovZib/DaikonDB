@@ -134,7 +134,7 @@ results::IntResult DaikonDatabase::MemoryUsage(std::string_view key) {
 
     size_t key_mem = key.size() + 32;
     uint32_t obj_mem = obj->GetMemoryUsage();
-    return obj_mem;
+    return obj_mem + key_mem;
 }
 
 results::StatusResult DaikonDatabase::Expire(std::string_view key, int64_t seconds) {
