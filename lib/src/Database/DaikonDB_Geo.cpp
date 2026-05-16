@@ -1,5 +1,5 @@
-#include "../../includes/Core/Types/Geo.h"
 #include "../../includes/core/DaikonDB.h"
+#include "../../includes/core/types/Geo.h"
 
 namespace daikon {
 

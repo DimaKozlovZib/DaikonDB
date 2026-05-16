@@ -1,5 +1,5 @@
 #include "../../includes/core/DaikonDB.h"
-#include "../../includes/Core/Types/Set.h"
+#include "../../includes/core/types/Set.h"
 
 namespace daikon {
 
