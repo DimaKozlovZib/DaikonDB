@@ -6,7 +6,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "../memory/TrackingAllocator.h"
+#include "../../memory/TrackingAllocator.h"
 #include "haversine.h"
 
 namespace daikon::core::types::detail {

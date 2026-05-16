@@ -32,13 +32,17 @@ struct SetObject final : public BaseDataObject {
     size_t Remove(const std::vector<std::string_view>& elements) {
         size_t removed = 0;
         for (const auto& v : elements) {
-            removed += members.erase(v);
+            auto it = members.find(v);
+            if (it != members.end()) {
+                members.erase(it);
+                ++removed;
+            }
         }
         return removed;
     }
 
     bool IsMember(std::string_view element) const {
-        return members.contains(element);
+        return members.find(element) != members.end();
     }
 
     std::vector<std::string> AllMembers() const {
@@ -55,7 +59,6 @@ struct SetObject final : public BaseDataObject {
         if (sets.empty()) return {};
         std::unordered_set<std::string_view> seen;
         std::vector<std::string> result;
-        
         for (const auto* s : sets) {
             for (const auto& elem : s->members) {
                 std::string_view sv(elem.data(), elem.size());
@@ -68,7 +71,6 @@ struct SetObject final : public BaseDataObject {
 
     static std::vector<std::string> InterSets(const std::vector<SetObject*>& sets) {
         if (sets.empty()) return {};
-        
         std::vector<std::string> result;
         for (const auto& elem : sets[0]->members) {
             std::string_view sv(elem.data(), elem.size());
@@ -86,12 +88,10 @@ struct SetObject final : public BaseDataObject {
 
     static std::vector<std::string> DiffSets(const std::vector<SetObject*>& sets) {
         if (sets.empty()) return {};
-        
         std::vector<std::string> result;
         for (const auto& elem : sets[0]->members) {
             std::string_view sv(elem.data(), elem.size());
             bool in_any = false;
-            
             for (size_t i = 1; i < sets.size(); ++i) {
                 if (sets[i]->members.contains(sv)) {
                     in_any = true;
@@ -106,7 +106,6 @@ struct SetObject final : public BaseDataObject {
     bool MoveMember(SetObject& dest, std::string_view element) {
         auto it = members.find(element);
         if (it == members.end()) return false;
-        
         dest.members.emplace(it->data(), it->size(), dest.members.get_allocator());
         members.erase(it);
         return true;
@@ -117,7 +116,8 @@ struct SetObject final : public BaseDataObject {
         int64_t EstimateAdd(const std::vector<std::string_view>& elements) const {
             int64_t delta = 0;
             for (const auto& v : elements) {
-                if (!obj.members.contains(v)) delta += v.size() + 64;
+                if (!obj.members.contains(v))
+                    delta += v.size() + 64;
             }
             return delta;
         }
