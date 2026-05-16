@@ -6,26 +6,26 @@
 namespace daikon::core::mem {
 
 struct IMemoryTracker {
-    virtual void OnAllocate(std::size_t bytes) = 0;
-    virtual void OnDeallocate(std::size_t bytes) = 0;
+    virtual void OnAllocate(size_t bytes) = 0;
+    virtual void OnDeallocate(size_t bytes) = 0;
     virtual ~IMemoryTracker() = default;
 };
 
 template <typename T>
 class TrackingAllocator {
-public:
+   public:
     using value_type = T;
 
     TrackingAllocator() noexcept : tracker_(nullptr), root_object_(nullptr) {}
-    explicit TrackingAllocator(IMemoryTracker* tracker, uint32_t* root = nullptr) noexcept 
+    explicit TrackingAllocator(IMemoryTracker* tracker, uint32_t* root = nullptr) noexcept
         : tracker_(tracker), root_object_(root) {}
 
     template <typename U>
-    TrackingAllocator(const TrackingAllocator<U>& other) noexcept 
+    TrackingAllocator(const TrackingAllocator<U>& other) noexcept
         : tracker_(other.tracker_), root_object_(other.root_object_) {}
 
-    T* allocate(std::size_t n) {
-        std::size_t bytes = n * sizeof(T);
+    T* allocate(size_t n) {
+        size_t bytes = n * sizeof(T);
         if (tracker_) {
             tracker_->OnAllocate(bytes);
         }
@@ -35,8 +35,8 @@ public:
         return std::allocator<T>().allocate(n);
     }
 
-    void deallocate(T* p, std::size_t n) noexcept {
-        std::size_t bytes = n * sizeof(T);
+    void deallocate(T* p, size_t n) noexcept {
+        size_t bytes = n * sizeof(T);
         if (tracker_) {
             tracker_->OnDeallocate(bytes);
         }

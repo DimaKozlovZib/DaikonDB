@@ -68,7 +68,7 @@ CommandParser::Dispatch(std::string_view cmd, std::span<const std::string_view> 
 
     if (IsEquals(cmd, CONFIG) && args.size() >= 1) {
         if (IsEquals(args[0], "SET") && args.size() == 3)
-            return TryParse<ConfigSetArgs, Value, Value>(args.subspan(1));
+            return TryParse<ConfigSetArgs, Value, Int64>(args.subspan(1));
         if (IsEquals(args[0], "GET") && args.size() == 2)
             return TryParse<ConfigGetArgs, Value>(args.subspan(1));
     }

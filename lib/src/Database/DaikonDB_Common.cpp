@@ -37,7 +37,7 @@ results::IntResult DaikonDatabase::Exists(const std::vector<std::string_view>& k
 
 results::StatusResult DaikonDatabase::ConfigSetMaxmemory(int64_t bytes) {
     if (bytes < 0) return results::StatusResult{false};
-    maxmemory_ = static_cast<std::size_t>(bytes);
+    maxmemory_ = static_cast<size_t>(bytes);
     return results::StatusResult{true};
 }
 
@@ -53,61 +53,65 @@ void DaikonDatabase::Flushdb() {
     db_.Clear();
 }
 
-static bool MatchGlobPattern(std::string_view pattern, std::string_view text) {
+bool MatchGlobPattern(std::string_view pattern, std::string_view text) {
     size_t p = 0, t = 0;
-    size_t star = std::string_view::npos;
-    size_t match = 0;
+    size_t p_star = std::string_view::npos;
+    size_t t_star = std::string_view::npos;
 
     while (t < text.size()) {
-        if (p < pattern.size() && pattern[p] == '\\') {
-            ++p;
-            if (p < pattern.size() && pattern[p] == text[t]) {
-                ++p;
-                ++t;
-            } else if (p < pattern.size() && pattern[p] != text[t]) {
-                return false;
-            }
-        } else if (p < pattern.size() && pattern[p] == '*') {
-            star = p;
-            match = t;
-            ++p;
-        } else if (p < pattern.size() && pattern[p] == '?') {
-            ++p;
-            ++t;
-        } else if (p < pattern.size() && pattern[p] == '[') {
-            ++p;
-            bool negate = false;
-            if (p < pattern.size() && pattern[p] == '^') {
-                negate = true;
-                ++p;
-            }
-            bool matched = false;
-            while (p < pattern.size() && pattern[p] != ']') {
-                if (p + 2 < pattern.size() && pattern[p + 1] == '-') {
-                    char start = pattern[p];
-                    char end = pattern[p + 2];
-                    if (text[t] >= start && text[t] <= end) matched = true;
-                    p += 3;
-                } else {
-                    if (text[t] == pattern[p]) matched = true;
-                    ++p;
+        if (p < pattern.size() && pattern[p] == '*') {
+            p_star = p++;
+            t_star = t;
+            continue;
+        }
+        bool match = false;
+        size_t next_p = p;
+
+        if (p < pattern.size()) {
+            if (pattern[p] == '\\') {
+                if (p + 1 < pattern.size() && pattern[p + 1] == text[t]) {
+                    match = true;
+                    next_p = p + 2;
                 }
+            } else if (pattern[p] == '?') {
+                match = true;
+                next_p = p + 1;
+            } else if (pattern[p] == '[') {
+                size_t temp_p = p + 1;
+                bool negate = (temp_p < pattern.size() && pattern[temp_p] == '^');
+                if (negate) temp_p++;
+
+                bool found = false;
+                while (temp_p < pattern.size() && pattern[temp_p] != ']') {
+                    if (temp_p + 2 < pattern.size() && pattern[temp_p + 1] == '-') {
+                        if (text[t] >= pattern[temp_p] && text[t] <= pattern[temp_p + 2]) found = true;
+                        temp_p += 3;
+                    } else {
+                        if (text[t] == pattern[temp_p]) found = true;
+                        temp_p++;
+                    }
+                }
+
+                if (temp_p < pattern.size() && (found != negate)) {
+                    match = true;
+                    next_p = temp_p + 1;
+                }
+            } else if (pattern[p] == text[t]) {
+                match = true;
+                next_p = p + 1;
             }
-            if (p < pattern.size() && pattern[p] == ']') ++p;
-            if ((negate && matched) || (!negate && !matched)) return false;
-            ++t;
-        } else if (p < pattern.size() && pattern[p] != text[t]) {
-            if (star != std::string_view::npos) {
-                p = star + 1;
-                t = ++match;
-            } else {
-                return false;
-            }
+        }
+        if (match) {
+            p = next_p;
+            t++;
+        } else if (p_star != std::string_view::npos) {
+            p = p_star + 1;
+            t = ++t_star;
         } else {
-            ++p;
-            ++t;
+            return false;
         }
     }
+
     while (p < pattern.size() && pattern[p] == '*')
         ++p;
     return p == pattern.size();

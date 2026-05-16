@@ -159,7 +159,7 @@ struct KeysArgs {
 struct FlushdbArgs {};
 struct ConfigSetArgs {
     std::string_view parameter;
-    std::string_view value;
+    int64_t value;
 };
 struct ConfigGetArgs {
     std::string_view parameter;
@@ -168,7 +168,6 @@ struct DbsizeArgs {};
 struct MemoryUsageArgs {
     std::string_view key;
 };
-struct ExitArgs {};
 
 using Command = std::variant<TypeArgs,
                              DelArgs,
@@ -179,7 +178,6 @@ using Command = std::variant<TypeArgs,
                              ConfigGetArgs,
                              DbsizeArgs,
                              MemoryUsageArgs,
-                             ExitArgs,
                              GeoaddArgs,
                              GeoposArgs,
                              GeodistArgs,

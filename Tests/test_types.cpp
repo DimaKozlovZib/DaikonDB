@@ -202,3 +202,45 @@ TEST_F(TypesTest, GeoObject_SearchPoints) {
     EXPECT_EQ(res[0].second.longitude, 10.1);
     EXPECT_EQ(res[0].second.latitude, 20.1);
 }
+
+TEST_F(TypesTest, BaseDataObject_TtlExpire) {
+    StringObject str(&db, "ttl_test");
+    EXPECT_FALSE(str.HasTtl());
+    EXPECT_FALSE(str.IsExpired());
+    str.SetTTL(std::chrono::seconds(1));
+    EXPECT_TRUE(str.HasTtl());
+    EXPECT_FALSE(str.IsExpired());
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+    EXPECT_TRUE(str.IsExpired());
+}
+
+TEST_F(TypesTest, MemoryViews_Coverage) {
+    StringObject str(&db, "test");
+    auto sv = str.GetMemoryView();
+    sv.EstimateSet("new");
+    sv.EstimateAppend("_suffix");
+    StringObject::EstimateCreate("test");
+
+    ListObject list(&db);
+    list.PushRight({"a"});
+    auto lv = list.GetMemoryView();
+    lv.EstimatePush({"b"});
+    lv.EstimateSet(0, "cc");
+    lv.EstimateInsert("dd");
+    ListObject::EstimateCreate();
+
+    SetObject set(&db);
+    set.Add({"x"});
+    auto setv = set.GetMemoryView();
+    setv.EstimateAdd({"y"});
+    setv.EstimateMove("z");
+    SetObject::EstimateCreate();
+
+    GeoObject geo(&db);
+    geo.Add(0, 0, "p");
+    auto gv = geo.GetMemoryView();
+    gv.EstimateAdd("q");
+    GeoObject::EstimateCreate();
+    SUCCEED();
+}

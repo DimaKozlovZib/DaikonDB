@@ -22,11 +22,11 @@ namespace daikon {
 
 class DaikonDatabase {
    public:
-    explicit DaikonDatabase(core::DBase& db, std::size_t maxmemory = 0)
-        : db_(db), maxmemory_(maxmemory) {}
+    explicit DaikonDatabase(size_t maxmemory = 0)
+        : maxmemory_(maxmemory) {}
 
-    void SetMaxMemory(std::size_t mem) { maxmemory_ = mem; }
-    std::size_t GetMaxMemory() const { return maxmemory_; }
+    void SetMaxMemory(size_t mem) { maxmemory_ = mem; }
+    size_t GetMaxMemory() const { return maxmemory_; }
 
     DbResult<results::StatusResult> Set(std::string_view key, std::string_view value);
     DbResult<results::ViewResult> Get(std::string_view key);
@@ -83,13 +83,17 @@ class DaikonDatabase {
     results::StatusResult Expire(std::string_view key, int64_t seconds);
     results::IntResult Ttl(std::string_view key);
 
+    size_t GetTotalRamUsage() const {
+        return db_.GetTotalRamUsage();
+    }
+
     bool IsMemoryFull() {
         return maxmemory_ > 0 && db_.GetTotalRamUsage() >= maxmemory_;
     }
 
    private:
-    core::DBase& db_;
-    std::size_t maxmemory_;
+    core::DBase db_;
+    size_t maxmemory_;
 
     bool WillExceedLimit(int64_t delta) const {
         if (maxmemory_ == 0) return false;

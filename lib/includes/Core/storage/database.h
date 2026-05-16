@@ -16,7 +16,7 @@ namespace daikon::core {
 
 struct DataObjectDeleter {
     mem::IMemoryTracker* tracker;
-    std::size_t size;
+    size_t size;
 
     void operator()(types::BaseDataObject* p) const {
         if (p) {
@@ -58,8 +58,8 @@ class DBase : public mem::IMemoryTracker {
     }
 
     size_t GetTotalRamUsage() const { return total_ram_usage_; }
-    void OnAllocate(std::size_t bytes) override { total_ram_usage_ += bytes; }
-    void OnDeallocate(std::size_t bytes) override { total_ram_usage_ -= bytes; }
+    void OnAllocate(size_t bytes) override { total_ram_usage_ += bytes; }
+    void OnDeallocate(size_t bytes) override { total_ram_usage_ -= bytes; }
 
     size_t Size() const { return storage_.size(); }
     void Clear() {

@@ -19,11 +19,11 @@ set(LIB_SOURCES
 
 add_library(daikon_lib STATIC ${LIB_SOURCES})
 target_include_directories(daikon_lib PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/lib/include
+    ${CMAKE_CURRENT_LIST_DIR}/lib/
 )
 
 set(APP_SOURCES
-    lib/src/main.cpp
+    app/main.cpp
 )
 
 add_executable(daikon_app ${APP_SOURCES})
@@ -43,6 +43,8 @@ target_link_libraries(daikon_app PRIVATE daikon_lib)
     set(TEST_SOURCES
         Tests/test_types.cpp
         Tests/test_memory.cpp
+        Tests/test_daikondb.cpp
+        Tests/test_matchpat.cpp
     )
 
     add_executable(daikon_tests ${TEST_SOURCES})
@@ -50,3 +52,5 @@ target_link_libraries(daikon_app PRIVATE daikon_lib)
     target_include_directories(daikon_tests PRIVATE ${CMAKE_CURRENT_LIST_DIR}/lib/include)
     include(GoogleTest)
     gtest_discover_tests(daikon_tests)
+
+include(tests/coverage.cmake)

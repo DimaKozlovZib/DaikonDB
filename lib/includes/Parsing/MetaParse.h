@@ -13,13 +13,13 @@ struct CommandGroupTraits;
 template <typename... Ts>
 struct CommandGroupTraits<std::variant<Ts...>> {
     using types = std::tuple<Ts...>;
-    static constexpr std::size_t size = sizeof...(Ts);
+    static constexpr size_t size = sizeof...(Ts);
 };
 
-template <std::size_t I, typename Group, typename ArgStruct, typename = void>
+template <size_t I, typename Group, typename ArgStruct, typename = void>
 struct GroupContainsArgument : std::false_type {};
 
-template <std::size_t I, typename Group, typename ArgStruct>
+template <size_t I, typename Group, typename ArgStruct>
 struct GroupContainsArgument<I, Group, ArgStruct, std::enable_if_t<(I < CommandGroupTraits<Group>::size)>> {
     using current_type = std::tuple_element_t<I, typename CommandGroupTraits<Group>::types>;
 
@@ -27,10 +27,10 @@ struct GroupContainsArgument<I, Group, ArgStruct, std::enable_if_t<(I < CommandG
                                  GroupContainsArgument<I + 1, Group, ArgStruct>::value;
 };
 
-template <std::size_t I, typename Group, typename ArgStruct>
+template <size_t I, typename Group, typename ArgStruct>
 inline constexpr bool GroupContainsArgument_v = GroupContainsArgument<I, Group, ArgStruct>::value;
 
-template <std::size_t I, std::size_t Max, typename AllCommands, typename ArgStruct>
+template <size_t I, size_t Max, typename AllCommands, typename ArgStruct>
 struct FindCommandCategory {
     using current_category = std::tuple_element_t<I, typename CommandGroupTraits<AllCommands>::types>;
 
@@ -41,7 +41,7 @@ struct FindCommandCategory {
     >;
 };
 
-template <std::size_t N, typename AllCommands, typename ArgStruct>
+template <size_t N, typename AllCommands, typename ArgStruct>
 struct FindCommandCategory<N, N, AllCommands, ArgStruct> {
     using type = void;
 };

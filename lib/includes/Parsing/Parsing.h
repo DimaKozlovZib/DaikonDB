@@ -29,6 +29,10 @@ enum class PipelineCategory {
 };
 
 class CommandParser {
+   public:
+    std::optional<commands::Command> Dispatch(std::string_view cmd,
+                                              std::span<const std::string_view> args);
+
    private:
     template <typename Command, typename... Tags>
     std::optional<commands::Command> TryParse(std::span<const std::string_view> args) {
@@ -52,56 +56,7 @@ class CommandParser {
                           std::move(maybe_vals));
     }
 
-    // template <typename CommandType, typename... Tags>
-    // std::optional<commands::Command> TryParseComSeg(std::span<const std::string_view> args) {
-    //     auto result = TryParse<CommandType, Tags...>(args);
-    //     if (result) {
-    //         return commands::Command{::daikon::commands::meta::ResolveCommandGroup_t<commands::Command, CommandType>{std::move(*result)}};
-    //     }
-    //     return std::nullopt;
-    // }
-
     bool IsEquals(std::string_view a, std::string_view b);
-
-    std::optional<commands::Command> Dispatch(std::string_view cmd,
-                                              std::span<const std::string_view> args);
-
-    // PipelineCategory AnalyzePipeline(const std::vector<commands::Command>& pipeline) {
-    //     std::unordered_set<std::string_view> read_keys;
-    //     bool global_read_active = false;
-
-    //     for (const auto& cmd : pipeline) {
-    //         auto category = std::visit([&](auto&& args) -> PipelineCategory {
-    //             using T = std::decay_t<decltype(args)>;
-
-    //             bool is_write = commands::meta::IsWriteOp<T>::value;
-    //             bool is_read = commands::meta::IsReadOp<T>::value;
-    //             auto current_keys = commands::meta::GetAffectedKeys(args);
-
-    //             if (is_write) {
-    //                 if constexpr (std::is_same_v<T, commands::FlushdbArgs>) {
-    //                     if (!read_keys.empty() || global_read_active) return PipelineCategory::kMixed;
-    //                 }
-
-    //                 for (auto k : current_keys) {
-    //                     if (read_keys.contains(k)) return PipelineCategory::kMixed;
-    //                 }
-    //             }
-
-    //             if (is_read) {
-    //                 for (auto k : current_keys) {
-    //                     read_keys.insert(k);
-    //                 }
-    //             }
-    //             return PipelineCategory::kSafe;
-    //         },
-    //                                    cmd);
-
-    //         if (category == PipelineCategory::kMixed) return PipelineCategory::kMixed;
-    //     }
-
-    //     return PipelineCategory::kSafe;
-    // }
 };
 
 class Tokenizer {
