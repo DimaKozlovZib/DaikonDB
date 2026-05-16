@@ -19,7 +19,7 @@ set(LIB_SOURCES
 
 add_library(daikon_lib STATIC ${LIB_SOURCES})
 target_include_directories(daikon_lib PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/lib/
+    ${CMAKE_CURRENT_LIST_DIR}/lib
 )
 
 set(APP_SOURCES

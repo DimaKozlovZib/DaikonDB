@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-#include "StreamClient.h"
+#include "../lib/includes/clients/StreamClient.h"
 
 bool EqualIgnoreCase(std::string_view a, std::string_view b) {
     if (a.size() != b.size()) return false;

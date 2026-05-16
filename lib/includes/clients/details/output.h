@@ -33,15 +33,15 @@ inline std::string_view LogicErrorToString(LogicError error) {
 }
 
 template <typename T>
-void WriteResult(const T& result, std::ostream& os, const std::string& success_prefix = "") {
+void WriteResult(const T& value, std::ostream& os, const std::string& success_prefix = "") {
     if constexpr (std::is_same_v<T, results::StatusResult>) {
-        os << (result->success ? "OK" : "ERR operation failed");
+        os << (value.success ? "OK" : "ERR operation failed");
     } else if constexpr (std::is_same_v<T, results::ViewResult>) {
-        os << result->data;
+        os << value.data;
     } else if constexpr (std::is_same_v<T, results::IntResult>) {
-        os << result->value;
+        os << value.value;
     } else if constexpr (std::is_same_v<T, results::ListViewResult>) {
-        const auto& vec = result->elements;
+        const auto& vec = value.elements;
         if (vec.empty()) {
             os << "(empty array)";
         } else {
@@ -51,29 +51,33 @@ void WriteResult(const T& result, std::ostream& os, const std::string& success_p
             }
         }
     } else if constexpr (std::is_same_v<T, std::vector<std::optional<std::pair<double, double>>>>) {
-        for (size_t i = 0; i < result.size(); ++i) {
+        for (size_t i = 0; i < value.size(); ++i) {
             if (i) os << ' ';
-            const auto& opt = result[i];
+            const auto& opt = value[i];
             if (opt)
                 os << "(" << opt->first << " " << opt->second << ")";
             else
                 os << "(nil)";
         }
     } else if constexpr (std::is_floating_point_v<T>) {
-        os << result;
-    } else if constexpr (std::is_same_v<T, void>) {
-        os << "OK";
+        os << value;
     } else {
-        os << success_prefix << result;
+        os << success_prefix << value;
     }
 }
 
 template <typename T>
 void WriteResult(const DbResult<T>& result, std::ostream& os, const std::string& success_prefix = "") {
-    if (result)
-        WriteResult(result.value(), os, success_prefix);
-    else
+    if (result) {
+        if constexpr (std::is_same_v<T, void>) {
+            os << "OK";
+        } else {
+            WriteResult(*result, os, success_prefix);
+        }
+    } else {
         os << LogicErrorToString(result.error());
+    }
 }
+
 
 } // namespace daikon::detail

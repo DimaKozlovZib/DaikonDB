@@ -16,8 +16,8 @@
 #include "../parsing/CommandNames.h"
 #include "../parsing/Parsing.h"
 #include "../parsing/Types.h"
-#include "details/handlers.h"
-#include "details/output.h"
+#include "./details/handlers.h"
+#include "./details/output.h"
 
 namespace daikon {
 
