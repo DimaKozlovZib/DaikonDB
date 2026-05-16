@@ -24,6 +24,7 @@ class TrackingAllocator {
     TrackingAllocator(const TrackingAllocator<U>& other) noexcept
         : tracker_(other.tracker_), root_object_(other.root_object_) {}
 
+    // NOLINTNEXTLINE
     T* allocate(size_t n) {
         size_t bytes = n * sizeof(T);
         if (tracker_) {
@@ -35,6 +36,7 @@ class TrackingAllocator {
         return std::allocator<T>().allocate(n);
     }
 
+    // NOLINTNEXTLINE
     void deallocate(T* p, size_t n) noexcept {
         size_t bytes = n * sizeof(T);
         if (tracker_) {

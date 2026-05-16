@@ -12,7 +12,7 @@ struct StringObject final : public BaseDataObject {
 
     StringObject(mem::IMemoryTracker* tracker, std::string_view sv)
         : BaseDataObject(DataType::kString),
-          value(sv.data(), sv.size(), mem::TrackingAllocator<char>(tracker, &allocated_size))
+          value(sv.data(), sv.size(), mem::TrackingAllocator<char>(tracker, &allocated_size_))
     {}
 
     StringObject* AsString() override { return this; }

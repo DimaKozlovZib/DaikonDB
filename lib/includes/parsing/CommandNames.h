@@ -4,45 +4,46 @@
 
 namespace daikon::commands::names {
 
-constexpr std::string_view SET = "SET";
-constexpr std::string_view GET = "GET";
-constexpr std::string_view STRLEN = "STRLEN";
-constexpr std::string_view APPEND = "APPEND";
-constexpr std::string_view EXPIRE = "EXPIRE";
-constexpr std::string_view TTL = "TTL";
+constexpr std::string_view kSet = "SET";
+constexpr std::string_view kGet = "GET";
+constexpr std::string_view kStrlen = "STRLEN";
+constexpr std::string_view kAppend = "APPEND";
+constexpr std::string_view kExpire = "EXPIRE";
+constexpr std::string_view kTtl = "TTL";
 
-constexpr std::string_view LPUSH = "LPUSH";
-constexpr std::string_view RPUSH = "RPUSH";
-constexpr std::string_view LPOP = "LPOP";
-constexpr std::string_view RPOP = "RPOP";
-constexpr std::string_view LLEN = "LLEN";
-constexpr std::string_view LRANGE = "LRANGE";
-constexpr std::string_view LINDEX = "LINDEX";
-constexpr std::string_view LSET = "LSET";
-constexpr std::string_view LINSERT = "LINSERT";
+constexpr std::string_view kLpush = "LPUSH";
+constexpr std::string_view kRpush = "RPUSH";
+constexpr std::string_view kLpop = "LPOP";
+constexpr std::string_view kRpop = "RPOP";
+constexpr std::string_view kLlen = "LLEN";
+constexpr std::string_view kLrange = "LRANGE";
+constexpr std::string_view kLindex = "LINDEX";
+constexpr std::string_view kLset = "LSET";
+constexpr std::string_view kLinsert = "LINSERT";
 
-constexpr std::string_view SADD = "SADD";
-constexpr std::string_view SREM = "SREM";
-constexpr std::string_view SISMEMBER = "SISMEMBER";
-constexpr std::string_view SMEMBERS = "SMEMBERS";
-constexpr std::string_view SCARD = "SCARD";
-constexpr std::string_view SUNION = "SUNION";
-constexpr std::string_view SINTER = "SINTER";
-constexpr std::string_view SDIFF = "SDIFF";
-constexpr std::string_view SMOVE = "SMOVE";
+constexpr std::string_view kSadd = "SADD";
+constexpr std::string_view kSrem = "SREM";
+constexpr std::string_view kSismember = "SISMEMBER";
+constexpr std::string_view kSmembers = "SMEMBERS";
+constexpr std::string_view kScard = "SCARD";
+constexpr std::string_view kSunion = "SUNION";
+constexpr std::string_view kSinter = "SINTER";
+constexpr std::string_view kSdiff = "SDIFF";
+constexpr std::string_view kSmove = "SMOVE";
 
-constexpr std::string_view GEOADD = "GEOADD";
-constexpr std::string_view GEOPOS = "GEOPOS";
-constexpr std::string_view GEODIST = "GEODIST";
-constexpr std::string_view GEOSEARCH = "GEOSEARCH";
-constexpr std::string_view GEOSEARCHSTORE = "GEOSEARCHSTORE";
+constexpr std::string_view kGeoadd = "GEOADD";
+constexpr std::string_view kGeopos = "GEOPOS";
+constexpr std::string_view kGeodist = "GEODIST";
+constexpr std::string_view kGeosearch = "GEOSEARCH";
+constexpr std::string_view kGeosearchstore = "GEOSEARCHSTORE";
 
-constexpr std::string_view TYPE = "TYPE";
-constexpr std::string_view DEL = "DEL";
-constexpr std::string_view KEYS = "KEYS";
-constexpr std::string_view EXISTS = "EXISTS";
-constexpr std::string_view FLUSHDB = "FLUSHDB";
-constexpr std::string_view CONFIG = "CONFIG";
-constexpr std::string_view DBSIZE = "DBSIZE";
-constexpr std::string_view MEMORY = "MEMORY";
+constexpr std::string_view kType = "TYPE";
+constexpr std::string_view kDel = "DEL";
+constexpr std::string_view kKeys = "KEYS";
+constexpr std::string_view kExists = "EXISTS";
+constexpr std::string_view kFlushdb = "FLUSHDB";
+constexpr std::string_view kConfig = "CONFIG";
+constexpr std::string_view kDbsize = "DBSIZE";
+constexpr std::string_view kMemory = "MEMORY";
+
 } // namespace daikon::commands::names

@@ -15,7 +15,7 @@ struct ListObject final : public BaseDataObject {
 
     explicit ListObject(mem::IMemoryTracker* tracker)
         : BaseDataObject(DataType::kList),
-          values(Allocator(tracker, &allocated_size)) {}
+          values(Allocator(tracker, &allocated_size_)) {}
 
     ListObject* AsList() override { return this; }
 

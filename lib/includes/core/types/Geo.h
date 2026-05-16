@@ -39,8 +39,8 @@ struct GeoObject final : public BaseDataObject {
    public:
     explicit GeoObject(mem::IMemoryTracker* tracker)
         : BaseDataObject(DataType::kGeo),
-          points(MapAllocator(tracker, &allocated_size)),
-          node_alloc_(NodeAlloc(tracker, &allocated_size)),
+          points(MapAllocator(tracker, &allocated_size_)),
+          node_alloc_(NodeAlloc(tracker, &allocated_size_)),
           spatial_index_(std::make_unique<QuadtreeType>(points.get_allocator(), 8, 20, 10.0)) {}
 
     GeoObject* AsGeo() override { return this; }

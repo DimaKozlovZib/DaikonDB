@@ -1,6 +1,13 @@
 #include "../../includes/core/DaikonDB.h"
 #include "../../includes/core/types/List.h"
 
+#include <cstdint>     
+#include <string>      
+#include <string_view> 
+#include <vector>    
+#include <utility> 
+#include <optional> 
+
 namespace daikon {
 
 DbResult<void> DaikonDatabase::Lpush(std::string_view key, const std::vector<std::string_view>& values) {
@@ -12,9 +19,9 @@ DbResult<void> DaikonDatabase::Lpush(std::string_view key, const std::vector<std
         int64_t delta = PredictKeyOverhead(key) + core::types::ListObject::EstimateCreate() + core::types::ListObject::MemoryView::EstimatePushNew(values);
         if (WillExceedLimit(delta)) return std::unexpected(LogicError::kOom);
 
-        auto newList = db_.CreateObject<core::types::ListObject>();
-        newList->AsList()->PushLeft(values);
-        db_.Set(key, std::move(newList));
+        auto new_list = db_.CreateObject<core::types::ListObject>();
+        new_list->AsList()->PushLeft(values);
+        db_.Set(key, std::move(new_list));
         return {};
     }
 
@@ -33,9 +40,9 @@ DbResult<void> DaikonDatabase::Rpush(std::string_view key, const std::vector<std
         int64_t delta = PredictKeyOverhead(key) + core::types::ListObject::EstimateCreate() + core::types::ListObject::MemoryView::EstimatePushNew(values);
         if (WillExceedLimit(delta)) return std::unexpected(LogicError::kOom);
 
-        auto newList = db_.CreateObject<core::types::ListObject>();
-        newList->AsList()->PushRight(values);
-        db_.Set(key, std::move(newList));
+        auto new_list = db_.CreateObject<core::types::ListObject>();
+        new_list->AsList()->PushRight(values);
+        db_.Set(key, std::move(new_list));
         return {};
     }
 

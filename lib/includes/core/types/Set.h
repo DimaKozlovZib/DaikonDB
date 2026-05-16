@@ -17,7 +17,7 @@ struct SetObject final : public BaseDataObject {
 
     explicit SetObject(mem::IMemoryTracker* tracker)
         : BaseDataObject(DataType::kSet),
-          members(Allocator(tracker, &allocated_size)) {}
+          members(Allocator(tracker, &allocated_size_)) {}
 
     SetObject* AsSet() override { return this; }
 

@@ -18,25 +18,25 @@ enum class DataType : uint8_t {
 
 struct BaseDataObject {
    protected:
-    DataType type = DataType::kNone;
-    uint32_t allocated_size = 0;
-    TimePoint expires_at;
+    DataType type_ = DataType::kNone;
+    uint32_t allocated_size_ = 0;
+    TimePoint expires_at_;
 
    public:
-    explicit BaseDataObject(DataType t) : type(t), expires_at{} {}
+    explicit BaseDataObject(DataType t) : type_(t), expires_at_{} {}
     virtual ~BaseDataObject() = default;
 
-    bool HasTtl() const { return expires_at != TimePoint{}; }
+    bool HasTtl() const { return expires_at_ != TimePoint{}; }
     bool IsExpired() const {
-        return HasTtl() && Clock::now() >= expires_at;
+        return HasTtl() && Clock::now() >= expires_at_;
     }
     void SetTTL(std::chrono::seconds seconds) {
-        expires_at = Clock::now() + seconds;
+        expires_at_ = Clock::now() + seconds;
     }
 
-    DataType GetType() const { return type; }
-    TimePoint GetTtl() const { return expires_at; }
-    uint32_t GetMemoryUsage() const { return allocated_size; }
+    DataType GetType() const { return type_; }
+    TimePoint GetTtl() const { return expires_at_; }
+    uint32_t GetMemoryUsage() const { return allocated_size_; }
 
     virtual struct StringObject* AsString() { return nullptr; }
     virtual struct ListObject* AsList() { return nullptr; }
