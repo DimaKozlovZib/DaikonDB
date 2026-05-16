@@ -53,4 +53,4 @@ target_link_libraries(daikon_app PRIVATE daikon_lib)
     include(GoogleTest)
     gtest_discover_tests(daikon_tests)
 
-include(tests/coverage.cmake)
+include(Tests/coverage.cmake)
