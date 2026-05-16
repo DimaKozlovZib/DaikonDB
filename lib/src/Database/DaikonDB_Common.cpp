@@ -1,4 +1,4 @@
-#include "../../includes/core/DaikonDB.h"
+#include "core/DaikonDB.h"
 
 namespace daikon {
 
