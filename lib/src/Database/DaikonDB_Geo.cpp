@@ -1,5 +1,14 @@
 #include "../../includes/core/DaikonDB.h"
 #include "../../includes/core/types/Geo.h"
+#include "../../includes/core/results.h" 
+
+#include <string_view>
+#include <vector>
+#include <expected>
+#include <cstdint>
+#include <utility>
+#include <optional>
+#include <string>
 
 namespace daikon {
 

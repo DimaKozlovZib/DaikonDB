@@ -1,6 +1,10 @@
-#include <iostream>
+#include <cstdint>
+#include <expected>
+#include <string>
+#include <string_view>
 
 #include "../../includes/core/DaikonDB.h"
+#include "../../includes/core/results.h"
 #include "../../includes/core/types/String.h"
 
 namespace daikon {

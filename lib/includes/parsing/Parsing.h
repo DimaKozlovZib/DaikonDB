@@ -9,19 +9,18 @@
 
 #include "../Commands.h"
 #include "CommandNames.h"
-#include "MetaParse.h"
 #include "Types.h"
 
 namespace daikon::parsing {
 
 template <typename T>
-struct is_varargs : std::false_type {};
+struct IsVarArgs : std::false_type {};
 
 template <typename ElemTag>
-struct is_varargs<::daikon::parsing::args::VarArgs<ElemTag>> : std::true_type {};
+struct IsVarArgs<::daikon::parsing::args::VarArgs<ElemTag>> : std::true_type {};
 
 template <typename T>
-inline constexpr bool is_varargs_v = is_varargs<T>::value;
+inline constexpr bool IsVarArgs_v = IsVarArgs<T>::value;
 
 enum class PipelineCategory {
     kSafe,
@@ -38,14 +37,14 @@ class CommandParser {
     std::optional<commands::Command> TryParse(std::span<const std::string_view> args) {
         size_t idx = 0;
 
-        auto maybe_vals = std::make_tuple(traits::ArgTraits<Tags>::extract(args, idx)...);
+        auto maybe_vals = std::make_tuple(traits::ArgTraits<Tags>::Extract(args, idx)...);
 
         bool all_ok = std::apply([](auto&... args) {
             return (args.has_value() && ...);
         },
                                  maybe_vals);
 
-        constexpr bool has_varargs = (is_varargs_v<Tags> || ...);
+        constexpr bool kHasVarargs = (IsVarArgs_v<Tags> || ...);
         if (!has_varargs && idx != args.size()) all_ok = false;
 
         if (!all_ok) return std::nullopt;

@@ -1,6 +1,15 @@
 #include "../../includes/core/DaikonDB.h"
 #include "../../includes/core/types/Set.h"
 
+#include "../../includes/core/results.h"        
+
+#include <string_view>              
+#include <vector>                    
+#include <expected>                        
+#include <cstdint>                    
+#include <cstddef>      
+#include <utility>             
+
 namespace daikon {
 
 DbResult<results::IntResult> DaikonDatabase::Sadd(std::string_view key,

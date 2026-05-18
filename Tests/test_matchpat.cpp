@@ -3,7 +3,7 @@
 
 namespace daikon {
    extern bool MatchGlobPattern(std::string_view pattern, std::string_view text); 
-}
+}  // namespace daikon
 
 TEST(GlobTest, Exact) {
     EXPECT_TRUE(daikon::MatchGlobPattern("hello", "hello"));

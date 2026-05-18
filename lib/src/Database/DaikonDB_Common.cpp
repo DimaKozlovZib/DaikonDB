@@ -1,4 +1,12 @@
 #include "core/DaikonDB.h"
+#include "../../includes/core/results.h" 
+
+#include <vector>
+#include <string_view> 
+#include <cstdint>
+#include <cstddef>
+#include <string>
+#include <utility>
 
 namespace daikon {
 

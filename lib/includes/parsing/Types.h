@@ -33,7 +33,7 @@ struct ArgTraits;
 template <>
 struct ArgTraits<args::Key> {
     using value_type = std::string_view;
-    static std::optional<value_type> extract(std::span<const std::string_view> args, size_t& idx) {
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx >= args.size()) return std::nullopt;
         return args[idx++];
     }
@@ -42,7 +42,7 @@ struct ArgTraits<args::Key> {
 template <>
 struct ArgTraits<args::Value> {
     using value_type = std::string_view;
-    static std::optional<value_type> extract(std::span<const std::string_view> args, size_t& idx) {
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx >= args.size()) return std::nullopt;
         return args[idx++];
     }
@@ -51,7 +51,7 @@ struct ArgTraits<args::Value> {
 template <>
 struct ArgTraits<args::Int64> {
     using value_type = int64_t;
-    static std::optional<value_type> extract(std::span<const std::string_view> args, size_t& idx) {
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx >= args.size()) return std::nullopt;
         int64_t v;
         auto [ptr, ec] = std::from_chars(args[idx].data(), args[idx].data() + args[idx].size(), v);
@@ -64,7 +64,7 @@ struct ArgTraits<args::Int64> {
 template <>
 struct ArgTraits<args::Double> {
     using value_type = double;
-    static std::optional<value_type> extract(std::span<const std::string_view> args, size_t& idx) {
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx >= args.size()) return std::nullopt;
         double v;
         auto [ptr, ec] = std::from_chars(args[idx].data(), args[idx].data() + args[idx].size(), v);
@@ -77,7 +77,7 @@ struct ArgTraits<args::Double> {
 template <>
 struct ArgTraits<args::Unit> {
     using value_type = std::string_view;
-    static std::optional<value_type> extract(std::span<const std::string_view> args, size_t& idx) {
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx >= args.size()) return args::Unit::kDefaultValue; 
         return args[idx++];
     }
@@ -86,7 +86,7 @@ struct ArgTraits<args::Unit> {
 template <>
 struct ArgTraits<args::BeforeAfter> {
     using value_type = bool;
-    static std::optional<value_type> extract(std::span<const std::string_view> args, size_t& idx) {
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx >= args.size()) return std::nullopt;
         auto s = args[idx++];
         if (s == "BEFORE") return true;
@@ -98,7 +98,7 @@ struct ArgTraits<args::BeforeAfter> {
 template <>
 struct ArgTraits<args::OptionalInt64> {
     using value_type = std::optional<int64_t>;
-    static std::optional<value_type> extract(std::span<const std::string_view> args, size_t& idx) {
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx >= args.size()) return value_type{};
         int64_t v;
         auto [ptr, ec] = std::from_chars(args[idx].data(), args[idx].data() + args[idx].size(), v);
@@ -111,14 +111,14 @@ struct ArgTraits<args::OptionalInt64> {
 template <>
 struct ArgTraits<args::GeoPoint> {
     using value_type = commands::GeoPoint;
-    static std::optional<value_type> extract(std::span<const std::string_view> args, size_t& idx) {
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx + 2 >= args.size()) return std::nullopt;
         double lon, lat;
-        if (auto r1 = ArgTraits<args::Double>::extract(args, idx); !r1)
+        if (auto r1 = ArgTraits<args::Double>::Extract(args, idx); !r1)
             return std::nullopt;
         else
             lon = *r1;
-        if (auto r2 = ArgTraits<args::Double>::extract(args, idx); !r2)
+        if (auto r2 = ArgTraits<args::Double>::Extract(args, idx); !r2)
             return std::nullopt;
         else
             lat = *r2;
@@ -131,10 +131,10 @@ template <typename ElemTag>
 struct ArgTraits<args::VarArgs<ElemTag>> {
     using value_type = std::vector<typename ArgTraits<ElemTag>::value_type>;
 
-    static std::optional<value_type> extract(std::span<const std::string_view> args, size_t& idx) {
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         value_type vec;
         while (idx < args.size()) {
-            auto elem = ArgTraits<ElemTag>::extract(args, idx);
+            auto elem = ArgTraits<ElemTag>::Extract(args, idx);
             if (!elem) return std::nullopt;
             vec.push_back(std::move(*elem));
         }

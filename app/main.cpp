@@ -2,8 +2,10 @@
 #include <charconv>
 #include <iostream>
 #include <optional>
-#include <string>
 #include <string_view>
+#include <cstddef>  
+#include <cerrno>   
+#include <exception>
 
 #include "../lib/includes/clients/StreamClient.h"
 

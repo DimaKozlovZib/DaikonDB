@@ -1,5 +1,6 @@
 #include "../../includes/core/DaikonDB.h"
 #include "../../includes/core/types/List.h"
+#include "../../includes/core/results.h" 
 
 #include <cstdint>     
 #include <string>      
@@ -7,6 +8,8 @@
 #include <vector>    
 #include <utility> 
 #include <optional> 
+#include <expected>
+#include <cstddef>
 
 namespace daikon {
 
