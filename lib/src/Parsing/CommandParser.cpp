@@ -7,6 +7,7 @@
 #include "../../includes/parsing/Parsing.h"
 #include "../../includes/Commands.h"
 #include "../../includes/parsing/Types.h"
+#include "../../includes/parsing/CommandNames.h"
 
 namespace daikon::parsing {
 

@@ -3,8 +3,7 @@
 #include <iostream>
 #include <optional>
 #include <string_view>
-#include <cstddef>  
-#include <cerrno>   
+#include <cstddef>     
 #include <exception>
 
 #include "../lib/includes/clients/StreamClient.h"

@@ -1,12 +1,13 @@
-#include "core/DaikonDB.h"
-#include "../../includes/core/results.h" 
-
-#include <vector>
-#include <string_view> 
-#include <cstdint>
+#include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <vector>
+
+#include "../../includes/core/results.h"
+#include "core/DaikonDB.h"
 
 namespace daikon {
 
