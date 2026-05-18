@@ -61,8 +61,8 @@ class DBase {
     size_t Size() const { return storage_.size(); }
 
     void Clear() {
-        storage_.clear();
-        storage_.rehash(0);
+        std::unordered_map<TrackingString, ObjectPtr, StringHash, std::equal_to<>, MapAllocator> empty{MapAllocator(&tracker_)};
+        storage_.swap(empty);
     }
 
     void ForEachKey(std::function<void(std::string_view)> callback) const {
