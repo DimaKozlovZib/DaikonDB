@@ -22,11 +22,6 @@ struct IsVarArgs<::daikon::parsing::args::VarArgs<ElemTag>> : std::true_type {};
 template <typename T>
 inline constexpr bool IsVarArgs_v = IsVarArgs<T>::value;
 
-enum class PipelineCategory {
-    kSafe,
-    kMixed,
-};
-
 class CommandParser {
    public:
     std::optional<commands::Command> Dispatch(std::string_view cmd,

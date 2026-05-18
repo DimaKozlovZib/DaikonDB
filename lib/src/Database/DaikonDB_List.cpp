@@ -80,7 +80,7 @@ DbResult<results::IntResult> DaikonDatabase::Llen(std::string_view key) {
     if (!obj) return std::unexpected(LogicError::kNotFound);
     auto* list = obj->AsList();
     if (!list) return std::unexpected(LogicError::kWrongType);
-    return results::IntResult{static_cast<int64_t>(list->Len())};
+    return list->Len();
 }
 
 DbResult<results::ListViewResult> DaikonDatabase::Lrange(std::string_view key, int64_t start, int64_t stop) {
@@ -89,6 +89,7 @@ DbResult<results::ListViewResult> DaikonDatabase::Lrange(std::string_view key, i
     auto* list = obj->AsList();
     if (!list) return std::unexpected(LogicError::kWrongType);
     auto views = list->GetRange(start, stop);
+
     std::vector<std::string> elements;
     elements.reserve(views.size());
     for (auto sv : views)
@@ -103,7 +104,7 @@ DbResult<results::ViewResult> DaikonDatabase::Lindex(std::string_view key, int64
     if (!list) return std::unexpected(LogicError::kWrongType);
     auto opt = list->GetByIndex(index);
     if (!opt) return std::unexpected(LogicError::kNotFound);
-    return results::ViewResult{std::string(*opt)};
+    return *opt;
 }
 
 DbResult<void> DaikonDatabase::Lset(std::string_view key, int64_t index, std::string_view value) {
@@ -131,7 +132,7 @@ DbResult<results::IntResult> DaikonDatabase::Linsert(std::string_view key, bool 
 
     int64_t result = list->Insert(before, pivot, value);
     if (result == -1) return std::unexpected(LogicError::kNotFound);
-    return results::IntResult{result};
+    return result;
 }
 
 } // namespace daikon

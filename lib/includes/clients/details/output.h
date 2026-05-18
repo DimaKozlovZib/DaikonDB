@@ -25,8 +25,6 @@ inline std::string_view LogicErrorToString(LogicError error) {
             return "ERR no such key";
         case LogicError::kOom:
             return "(error) OOM command not allowed when used memory > 'maxmemory'";
-        case LogicError::kSyntaxError:
-            return "ERR syntax error";
         default:
             return "ERR unknown error";
     }

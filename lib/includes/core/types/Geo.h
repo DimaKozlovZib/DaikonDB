@@ -1,12 +1,12 @@
 #pragma once
 
 #include <algorithm>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-#include <iostream>
 
 #include "../../Commands.h"
 #include "../memory/TrackingAllocator.h"
@@ -34,26 +34,25 @@ struct GeoObject final : public BaseDataObject {
     using NodeAlloc = typename std::allocator_traits<MapAllocator>::template rebind_alloc<QuadtreeType>;
 
     std::unique_ptr<QuadtreeType> spatial_index_;
-    NodeAlloc node_alloc_;
 
    public:
     explicit GeoObject(mem::IMemoryTracker* tracker)
         : BaseDataObject(DataType::kGeo),
           points(MapAllocator(tracker, &allocated_size_)),
-          node_alloc_(NodeAlloc(tracker, &allocated_size_)),
-          spatial_index_(std::make_unique<QuadtreeType>(points.get_allocator(), 8, 20, 10.0)) {}
+          spatial_index_(std::make_unique<QuadtreeType>(points.get_allocator())) {}
 
     GeoObject* AsGeo() override { return this; }
 
     void Add(double lon, double lat, std::string_view member) {
-        auto key = TrackingString(member.data(), member.size(),
-                                  points.get_allocator());
-        auto it = points.find(key);
+        auto it = points.find(member);
 
         if (it == points.end()) {
-            auto inserted = points.emplace(key, GeoPoint{lon, lat});
+            auto inserted = points.emplace(TrackingString(member.data(), member.size(), points.get_allocator()), GeoPoint{lon, lat});
             spatial_index_->Insert({inserted.first->first, inserted.first->second});
         } else {
+            GeoPoint old_pt = it->second;
+            spatial_index_->Remove(old_pt);
+
             it->second = GeoPoint{lon, lat};
             spatial_index_->Insert({it->first, it->second});
         }
@@ -81,7 +80,7 @@ struct GeoObject final : public BaseDataObject {
     }
 
     std::vector<std::string> Search(double lon, double lat, double radius, std::string_view unit,
-                                         bool asc = false, std::optional<int64_t> count = std::nullopt) const {
+                                    bool asc = false, std::optional<int64_t> count = std::nullopt) const {
         double radius_m;
         if (unit == "km")
             radius_m = radius * 1000.0;
@@ -96,11 +95,9 @@ struct GeoObject final : public BaseDataObject {
         auto candidates = spatial_index_->RadiusSearch(lon, lat, radius_m);
 
         for (const auto& idx_pt : candidates) {
-            auto it = points.find(idx_pt.name);
-            if (it != points.end()) {
-                double d = detail::Haversine(lon, lat, it->second.longitude, it->second.latitude, unit);
-                if (d <= radius)
-                    results.emplace_back(std::string_view(idx_pt.name.data(), idx_pt.name.size()), d);
+            double d = detail::Haversine(lon, lat, idx_pt.point.longitude, idx_pt.point.latitude, unit);
+            if (d <= radius) {
+                results.emplace_back(idx_pt.name, d);
             }
         }
 
@@ -123,8 +120,8 @@ struct GeoObject final : public BaseDataObject {
     }
 
     std::vector<std::pair<std::string, GeoPoint>> SearchPoints(double lon, double lat, double radius,
-                                                                    std::string_view unit, bool asc = false,
-                                                                    std::optional<int64_t> count = std::nullopt) const {
+                                                               std::string_view unit, bool asc = false,
+                                                               std::optional<int64_t> count = std::nullopt) const {
         double radius_m;
         if (unit == "km")
             radius_m = radius * 1000.0;
@@ -175,7 +172,6 @@ struct GeoObject final : public BaseDataObject {
         static int64_t EstimateAddNew(std::string_view member) {
             return member.size() + sizeof(GeoPoint) + 48 + 200;
         }
-
 
         static int64_t EstimateCreateWithPoints(const std::vector<::daikon::commands::GeoPoint>& points) {
             int64_t delta = EstimateCreate();

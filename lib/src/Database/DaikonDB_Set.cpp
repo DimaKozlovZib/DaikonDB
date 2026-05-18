@@ -31,7 +31,7 @@ DbResult<results::IntResult> DaikonDatabase::Sadd(std::string_view key,
     auto view = set->GetMemoryView();
     if (WillExceedLimit(view.EstimateAdd(members))) return std::unexpected(LogicError::kOom);
     size_t added = set->Add(members);
-    return results::IntResult{static_cast<int64_t>(added)};
+    return added;
 }
 
 DbResult<results::IntResult> DaikonDatabase::Srem(std::string_view key,
@@ -41,7 +41,7 @@ DbResult<results::IntResult> DaikonDatabase::Srem(std::string_view key,
     auto* set = obj->AsSet();
     if (!set) return std::unexpected(LogicError::kWrongType);
     size_t removed = set->Remove(members);
-    return results::IntResult{static_cast<int64_t>(removed)};
+    return removed;
 }
 
 DbResult<results::IntResult> DaikonDatabase::Sismember(std::string_view key,
@@ -50,7 +50,7 @@ DbResult<results::IntResult> DaikonDatabase::Sismember(std::string_view key,
     if (!obj) return results::IntResult{0};
     auto* set = obj->AsSet();
     if (!set) return std::unexpected(LogicError::kWrongType);
-    return results::IntResult{set->IsMember(member) ? 1 : 0};
+    return set->IsMember(member) ? 1 : 0;
 }
 
 DbResult<results::ListViewResult> DaikonDatabase::Smembers(std::string_view key) {
@@ -66,7 +66,7 @@ DbResult<results::IntResult> DaikonDatabase::Scard(std::string_view key) {
     if (!obj) return std::unexpected(LogicError::kNotFound);
     auto* set = obj->AsSet();
     if (!set) return std::unexpected(LogicError::kWrongType);
-    return results::IntResult{static_cast<int64_t>(set->Card())};
+    return set->Card();
 }
 
 DbResult<results::ListViewResult> DaikonDatabase::Sunion(const std::vector<std::string_view>& keys) {
@@ -118,7 +118,7 @@ DbResult<results::StatusResult> DaikonDatabase::Smove(std::string_view source, s
     auto* src = db_.Get(source);
     auto* dst = db_.Get(destination);
 
-    if (!src || !dst) return results::StatusResult{false};
+    if (!src || !dst) return false;
     auto* src_set = src->AsSet();
     auto* dst_set = dst->AsSet();
 
@@ -126,7 +126,7 @@ DbResult<results::StatusResult> DaikonDatabase::Smove(std::string_view source, s
     auto view = dst_set->GetMemoryView();
 
     if (WillExceedLimit(view.EstimateMove(member))) return std::unexpected(LogicError::kOom);
-    return results::StatusResult{src_set->MoveMember(*dst_set, member)};
+    return src_set->MoveMember(*dst_set, member);
 }
 
 } // namespace daikon

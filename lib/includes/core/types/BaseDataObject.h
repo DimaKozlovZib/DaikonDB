@@ -16,6 +16,16 @@ enum class DataType : uint8_t {
     kGeo
 };
 
+inline std::string_view DataTypeToString(DataType type) {
+    switch (type) {
+        case DataType::kNone:   return "none";
+        case DataType::kString: return "string";
+        case DataType::kList:   return "list";
+        case DataType::kSet:    return "set";
+        case DataType::kGeo:    return "geo";
+    }
+}
+
 struct BaseDataObject {
    protected:
     DataType type_ = DataType::kNone;

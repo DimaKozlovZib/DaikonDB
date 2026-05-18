@@ -97,7 +97,7 @@ class DaikonDatabase {
 
     bool WillExceedLimit(int64_t delta) const {
         if (maxmemory_ == 0) return false;
-        return (db_.GetTotalRamUsage() + delta) > maxmemory_;
+        return (db_.GetTotalRamUsage() + delta) > static_cast<int64_t>(maxmemory_);
     }
 
     int64_t PredictKeyOverhead(std::string_view key) {

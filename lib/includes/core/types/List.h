@@ -2,8 +2,9 @@
 #include <deque>
 #include <string_view>
 #include <vector>
-#include "BaseDataObject.h"
+
 #include "../memory/TrackingAllocator.h"
+#include "BaseDataObject.h"
 
 namespace daikon::core::types {
 
@@ -54,8 +55,13 @@ struct ListObject final : public BaseDataObject {
     std::vector<std::string_view> GetRange(int64_t start, int64_t stop) const {
         int64_t size = static_cast<int64_t>(values.size());
         if (size == 0) return {};
-        if (start < 0) start = std::max(size + start, int64_t(0));
-        if (stop < 0) stop = std::min(size + stop, size - 1);
+
+        if (start < 0) start = size + start;
+        if (stop < 0) stop = size + stop;
+
+        if (start < 0) start = 0;
+        if (stop >= size) stop = size - 1;
+
         if (start > stop || start >= size) return {};
 
         stop = std::min(stop, size - 1);
@@ -83,7 +89,11 @@ struct ListObject final : public BaseDataObject {
     }
 
     int64_t Insert(bool before, std::string_view pivot, std::string_view val) {
-        auto it = std::find(values.begin(), values.end(), TrackingString(pivot.data(), pivot.size(), values.get_allocator()));
+        auto it = std::find_if(values.begin(), values.end(),
+                               [&](const TrackingString& ts) {
+                                   return ts.size() == pivot.size() && std::equal(ts.begin(), ts.end(), pivot.begin());
+                               });
+
         if (it == values.end()) return -1;
         if (before)
             values.insert(it, TrackingString(val.data(), val.size(), values.get_allocator()));
@@ -96,7 +106,8 @@ struct ListObject final : public BaseDataObject {
         const ListObject& obj;
         int64_t EstimatePush(const std::vector<std::string_view>& vals) const {
             int64_t delta = 0;
-            for (const auto& sv : vals) delta += sv.size() + 32;
+            for (const auto& sv : vals)
+                delta += sv.size() + 32;
             return delta;
         }
         int64_t EstimateSet(int64_t index, std::string_view new_val) const {
@@ -111,7 +122,8 @@ struct ListObject final : public BaseDataObject {
 
         static int64_t EstimatePushNew(const std::vector<std::string_view>& vals) {
             int64_t delta = 0;
-            for (const auto& sv : vals) delta += sv.size() + 32;
+            for (const auto& sv : vals)
+                delta += sv.size() + 32;
             return delta;
         }
     };

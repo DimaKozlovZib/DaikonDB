@@ -19,7 +19,7 @@ DbResult<results::StatusResult> DaikonDatabase::Set(std::string_view key, std::s
     if (WillExceedLimit(delta)) return std::unexpected(LogicError::kOom);
 
     db_.Set(key, db_.CreateObject<core::types::StringObject>(value));
-    return results::StatusResult{true};
+    return true;
 }
 
 DbResult<results::ViewResult> DaikonDatabase::Get(std::string_view key) {
@@ -27,7 +27,7 @@ DbResult<results::ViewResult> DaikonDatabase::Get(std::string_view key) {
     if (!obj) return std::unexpected(LogicError::kNotFound);
     auto* str = obj->AsString();
     if (!str) return std::unexpected(LogicError::kWrongType);
-    return results::ViewResult{std::string(str->Get())};
+    return str->Get();
 }
 
 DbResult<results::IntResult> DaikonDatabase::Strlen(std::string_view key) {
@@ -35,7 +35,7 @@ DbResult<results::IntResult> DaikonDatabase::Strlen(std::string_view key) {
     if (!obj) return std::unexpected(LogicError::kNotFound);
     auto* str = obj->AsString();
     if (!str) return std::unexpected(LogicError::kWrongType);
-    return results::IntResult{static_cast<int64_t>(str->Strlen())};
+    return str->Strlen();
 }
 
 DbResult<void> DaikonDatabase::Append(std::string_view key, std::string_view value) {

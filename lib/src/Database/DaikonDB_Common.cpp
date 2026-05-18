@@ -14,18 +14,7 @@ namespace daikon {
 results::ViewResult DaikonDatabase::Type(std::string_view key) {
     auto* obj = db_.Get(key);
     if (!obj) return results::ViewResult{"none"};
-    switch (obj->GetType()) {
-        case core::types::DataType::kString:
-            return results::ViewResult{"string"};
-        case core::types::DataType::kList:
-            return results::ViewResult{"list"};
-        case core::types::DataType::kSet:
-            return results::ViewResult{"set"};
-        case core::types::DataType::kGeo:
-            return results::ViewResult{"geo"};
-        default:
-            return results::ViewResult{"none"};
-    }
+    return core::types::DataTypeToString(obj->GetType());
 }
 
 results::IntResult DaikonDatabase::Del(const std::vector<std::string_view>& keys) {
@@ -51,11 +40,11 @@ results::StatusResult DaikonDatabase::ConfigSetMaxmemory(int64_t bytes) {
 }
 
 results::IntResult DaikonDatabase::ConfigGetMaxmemory() {
-    return results::IntResult(maxmemory_);
+    return maxmemory_;
 }
 
 results::IntResult DaikonDatabase::Dbsize() {
-    return results::IntResult(db_.Size());
+    return db_.Size();
 }
 
 void DaikonDatabase::Flushdb() {
@@ -142,13 +131,13 @@ results::IntResult DaikonDatabase::MemoryUsage(std::string_view key) {
     if (!obj) return 0;
 
     size_t key_mem = key.size() + 32;
-    uint32_t obj_mem = obj->GetMemoryUsage();
+    uint32_t obj_mem = obj->GetMemoryUsage() + sizeof(*obj);
     return obj_mem + key_mem;
 }
 
 results::StatusResult DaikonDatabase::Expire(std::string_view key, int64_t seconds) {
-    if (seconds < 0) return results::StatusResult{false};
-    return results::StatusResult{db_.Expire(key, std::chrono::seconds(seconds))};
+    if (seconds < 0) false;
+    return db_.Expire(key, std::chrono::seconds(seconds));
 }
 
 results::IntResult DaikonDatabase::Ttl(std::string_view key) {

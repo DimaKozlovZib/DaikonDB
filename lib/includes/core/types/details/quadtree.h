@@ -1,10 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <memory>
 #include <vector>
-#include <algorithm>
 
 #include "../../memory/TrackingAllocator.h"
 #include "haversine.h"
@@ -22,28 +22,30 @@ class Quadtree {
     using PointAlloc = typename std::allocator_traits<Allocator>::template rebind_alloc<IndexedPoint>;
 
     Quadtree(const Allocator& alloc,
-             size_t max_points_per_node = 8,
+             size_t max_points_in_node = 8,
              size_t max_depth = 20,
-             double min_node_size_m = 10.0)
+             double min_node_size_m = 500.0)
         : node_alloc_(alloc),
-          max_points_in_node_(max_points_per_node),
+          max_points_in_node_(max_points_in_node),
           max_depth_(max_depth),
           min_node_size_m_(min_node_size_m),
           nodes_(NodeAlloc(alloc)) {
-        
         PointAlloc point_alloc(alloc);
-        
-        double root_size_m = 40075000.0; 
+
+        double root_size_m = 40075000.0;
 
         nodes_.emplace_back(-90.0, 90.0, -180.0, 180.0, 0, root_size_m, point_alloc);
     }
 
     void Insert(const IndexedPoint& pt) {
-        if (pt.point.longitude < -180.0 || pt.point.longitude > 180.0 ||
-            pt.point.latitude < -90.0 || pt.point.latitude > 90.0) {
+        if (pt.point.longitude < -180.0 || pt.point.longitude > 180.0 || pt.point.latitude < -90.0 || pt.point.latitude > 90.0) {
             return;
         }
         InsertInternal(0, pt);
+    }
+
+    bool Remove(const GeoPointType& pt) {
+        return RemoveByPosition(0, pt);
     }
 
     std::vector<IndexedPoint> RadiusSearch(double lon, double lat,
@@ -65,8 +67,10 @@ class Quadtree {
             interval_count = 1;
         } else {
             double norm_lon = lon;
-            while (norm_lon < -180.0) norm_lon += 360.0;
-            while (norm_lon > 180.0) norm_lon -= 360.0;
+            while (norm_lon < -180.0)
+                norm_lon += 360.0;
+            while (norm_lon > 180.0)
+                norm_lon -= 360.0;
 
             double r_min_lon = norm_lon - delta_lon;
             double r_max_lon = norm_lon + delta_lon;
@@ -90,8 +94,8 @@ class Quadtree {
     }
 
    private:
-    struct LonInterval { 
-        double min_lon, max_lon; 
+    struct LonInterval {
+        double min_lon, max_lon;
     };
 
     struct Node {
@@ -103,8 +107,7 @@ class Quadtree {
 
         Node(double min_lat_, double max_lat_, double min_lon_, double max_lon_,
              size_t depth_, double node_size_m_, const PointAlloc& alloc)
-            : min_lat(min_lat_), max_lat(max_lat_), min_lon(min_lon_), max_lon(max_lon_),
-              points(alloc), first_child_idx(0), depth(depth_), node_size_m(node_size_m_) {}
+            : min_lat(min_lat_), max_lat(max_lat_), min_lon(min_lon_), max_lon(max_lon_), points(alloc), first_child_idx(0), depth(depth_), node_size_m(node_size_m_) {}
     };
 
     using NodeAlloc = typename std::allocator_traits<Allocator>::template rebind_alloc<Node>;
@@ -113,6 +116,34 @@ class Quadtree {
         bool lat_ok = (lat >= node.min_lat) && (node.max_lat == 90.0 ? lat <= node.max_lat : lat < node.max_lat);
         bool lon_ok = (lon >= node.min_lon) && (node.max_lon == 180.0 ? lon <= node.max_lon : lon < node.max_lon);
         return lat_ok && lon_ok;
+    }
+
+    bool RemoveByPosition(size_t node_idx, const GeoPointType& pt) {
+        auto& points = nodes_[node_idx].points;
+
+        auto it = std::find_if(points.begin(), points.end(),
+                               [&](const IndexedPoint& p) { return p.point.longitude == pt.longitude && p.point.latitude == pt.latitude; });
+        if (it != points.end()) {
+            points.erase(it);
+            return true;
+        }
+
+        if (nodes_[node_idx].first_child_idx != 0) {
+            uint32_t first_child = nodes_[node_idx].first_child_idx;
+
+            for (uint32_t i = 0; i < 4; ++i) {
+                size_t child_idx = first_child + i;
+                if (ContainsNode(nodes_[child_idx], pt.longitude, pt.latitude)) {
+                    return RemoveByPosition(child_idx, pt);
+                }
+            }
+
+            for (uint32_t i = 0; i < 4; ++i) {
+                if (RemoveByPosition(first_child + i, pt))
+                    return true;
+            }
+        }
+        return false;
     }
 
     void Subdivide(size_t node_idx) {
@@ -183,7 +214,7 @@ class Quadtree {
         }
     }
 
-    void RadiusSearchInternal(size_t node_idx, 
+    void RadiusSearchInternal(size_t node_idx,
                               double min_lat_box, double max_lat_box,
                               const std::array<LonInterval, 2>& lon_intervals, size_t interval_count,
                               double q_lon, double q_lat, double radius_m,
