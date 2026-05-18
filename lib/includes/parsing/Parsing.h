@@ -45,7 +45,7 @@ class CommandParser {
                                  maybe_vals);
 
         constexpr bool kHasVarargs = (IsVarArgs_v<Tags> || ...);
-        if (!has_varargs && idx != args.size()) all_ok = false;
+        if (!kHasVarargs && idx != args.size()) all_ok = false;
 
         if (!all_ok) return std::nullopt;
 
