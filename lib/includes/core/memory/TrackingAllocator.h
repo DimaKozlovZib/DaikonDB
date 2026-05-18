@@ -2,14 +2,9 @@
 
 #include <cstddef>
 #include <memory>
+#include "MemoryTracker.h"
 
 namespace daikon::core::mem {
-
-struct IMemoryTracker {
-    virtual void OnAllocate(size_t bytes) = 0;
-    virtual void OnDeallocate(size_t bytes) = 0;
-    virtual ~IMemoryTracker() = default;
-};
 
 template <typename T>
 class TrackingAllocator {

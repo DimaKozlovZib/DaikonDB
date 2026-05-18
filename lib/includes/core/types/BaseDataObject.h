@@ -23,6 +23,7 @@ inline std::string_view DataTypeToString(DataType type) {
         case DataType::kList:   return "list";
         case DataType::kSet:    return "set";
         case DataType::kGeo:    return "geo";
+        default: return "none";
     }
 }
 
