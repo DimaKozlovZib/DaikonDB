@@ -21,6 +21,7 @@ struct Unit {
 struct BeforeAfter {};
 struct OptionalInt64 {};
 struct GeoPoint {};
+struct AscDesc {};
 
 template <typename ElemTag>
 struct VarArgs {
@@ -99,6 +100,20 @@ struct ArgTraits<args::Unit> {
             return args[idx++];
         }
         return args::Unit::kDefaultValue;
+    }
+};
+
+template <>
+struct ArgTraits<args::AscDesc> {
+    using value_type = bool;
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
+        if (idx >= args.size()) return true;
+        auto s = args[idx++];
+        
+        if (s == "ASC" || s == "asc") return true;
+        if (s == "DESC" || s == "desc") return false;
+
+        return std::nullopt;
     }
 };
 

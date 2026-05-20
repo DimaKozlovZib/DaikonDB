@@ -13,7 +13,7 @@ namespace daikon {
 
 DbResult<results::IntResult> DaikonDatabase::Sadd(std::string_view key,
                                                   const std::vector<std::string_view>& members) {
-    db_.ExpireCycle(3);
+    if (has_active_del_) db_.ExpireCycle(3);
 
     auto* obj = db_.Get(key);
     auto* set = obj ? obj->AsSet() : nullptr;
@@ -116,7 +116,7 @@ DbResult<results::ListViewResult> DaikonDatabase::Sdiff(const std::vector<std::s
 
 DbResult<results::StatusResult> DaikonDatabase::Smove(std::string_view source, std::string_view destination,
                                                       std::string_view member) {
-    db_.ExpireCycle(3);
+    if (has_active_del_) db_.ExpireCycle(3);
 
     auto* src = db_.Get(source);
     auto* dst = db_.Get(destination);

@@ -14,7 +14,7 @@
 namespace daikon {
 
 DbResult<void> DaikonDatabase::Lpush(std::string_view key, const std::vector<std::string_view>& values) {
-    db_.ExpireCycle(3);
+    if (has_active_del_) db_.ExpireCycle(3);
 
     auto* obj = db_.Get(key);
     auto* list = obj ? obj->AsList() : nullptr;
@@ -37,7 +37,7 @@ DbResult<void> DaikonDatabase::Lpush(std::string_view key, const std::vector<std
 }
 
 DbResult<void> DaikonDatabase::Rpush(std::string_view key, const std::vector<std::string_view>& values) {
-    db_.ExpireCycle(3);
+    if (has_active_del_) db_.ExpireCycle(3);
 
     auto* obj = db_.Get(key);
     auto* list = obj ? obj->AsList() : nullptr;
@@ -112,7 +112,7 @@ DbResult<results::ViewResult> DaikonDatabase::Lindex(std::string_view key, int64
 }
 
 DbResult<void> DaikonDatabase::Lset(std::string_view key, int64_t index, std::string_view value) {
-    db_.ExpireCycle(3);
+    if (has_active_del_) db_.ExpireCycle(3);
 
     auto* obj = db_.Get(key);
     if (!obj) return std::unexpected(LogicError::kNotFound);
@@ -126,7 +126,7 @@ DbResult<void> DaikonDatabase::Lset(std::string_view key, int64_t index, std::st
 
 DbResult<results::IntResult> DaikonDatabase::Linsert(std::string_view key, bool before,
                                                      std::string_view pivot, std::string_view value) {
-    db_.ExpireCycle(3);
+    if (has_active_del_) db_.ExpireCycle(3);
 
     auto* obj = db_.Get(key);
 

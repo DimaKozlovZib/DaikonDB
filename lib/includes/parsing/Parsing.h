@@ -47,8 +47,6 @@ class CommandParser {
         },
                           std::move(maybe_vals));
     }
-
-    bool IsEquals(std::string_view a, std::string_view b);
 };
 
 class Tokenizer {
@@ -57,7 +55,7 @@ class Tokenizer {
         std::vector<std::string_view> tokens;
     };
 
-    static std::vector<RawCommand> GetTokens(std::string_view input);
+    static std::optional<std::vector<RawCommand>> GetTokens(std::string_view input);
 };
 
 } // namespace daikon::parsing

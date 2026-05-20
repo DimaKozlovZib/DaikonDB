@@ -1,10 +1,10 @@
 #include <cctype>
 #include <charconv>
+#include <cstddef>
+#include <exception>
 #include <iostream>
 #include <optional>
 #include <string_view>
-#include <cstddef>     
-#include <exception>
 
 #include "../lib/includes/clients/StreamClient.h"
 
@@ -70,13 +70,9 @@ int main(int argc, char* argv[]) {
         maxmemory = *parsed_bytes;
     }
 
-    try {
-        daikon::StreamClient client(maxmemory);
-        client.ListenStream(std::cin, std::cout);
-    } catch (const std::exception& e) {
-        std::cerr << "Fatal error: " << e.what() << std::endl;
-        return 1;
-    }
+    daikon::StreamClient client(maxmemory, false);
+
+    client.ListenStream(std::cin, std::cout);
 
     return 0;
 }

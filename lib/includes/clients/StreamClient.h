@@ -23,8 +23,8 @@ namespace daikon {
 
 class StreamClient : public DaikonDatabase {
    public:
-    explicit StreamClient(size_t maxmemory = 0)
-        : DaikonDatabase(maxmemory) {}
+    explicit StreamClient(size_t maxmemory = 0, bool mem_op = true)
+        : DaikonDatabase(maxmemory, mem_op) {}
 
     void ListenStream(std::istream& in = std::cin,
                       std::ostream& out = std::cout) {
@@ -38,8 +38,17 @@ class StreamClient : public DaikonDatabase {
 
    private:
     void ExecuteCommand(const std::string& line, std::ostream& out) {
-        auto raw_cmds = parsing::Tokenizer::GetTokens(line);
-        if (raw_cmds.empty()) return;
+        auto op_raw_cmds = parsing::Tokenizer::GetTokens(line);
+        if (!op_raw_cmds.has_value()) {
+            std::cerr << "ERR syntax error: unclosed quotes or invalid escape sequence" << std::endl;
+            return;
+        }
+        if (op_raw_cmds.value().empty()) {
+            std::cerr << "ERR empty command" << std::endl;
+            return;
+        }
+
+        auto raw_cmds = std::move(op_raw_cmds.value());
 
         for (size_t i = 0; i < raw_cmds.size(); ++i) {
             const auto& tokens = raw_cmds[i].tokens;
@@ -53,10 +62,18 @@ class StreamClient : public DaikonDatabase {
                 continue;
             }
 
-            std::visit([&out, this](const auto& args) {
-                handlers::Handle(*this, args, out);
-            },
-                       *parsed_cmd);
+            try {
+                std::visit([&out, this](const auto& args) {
+                    handlers::Handle(*this, args, out);
+                },
+                           *parsed_cmd);
+            } catch (const std::bad_alloc& e) {
+                std::cerr << "ERR system OOM: " << e.what() << std::endl;
+                out << "(error) OOM command not allowed when used memory > 'maxmemory'" << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "ERR internal exception: " << e.what() << std::endl;
+                out << "ERR operation failed" << std::endl;
+            }
 
             out << std::endl;
         }

@@ -22,8 +22,8 @@ namespace daikon {
 
 class DaikonDatabase {
    public:
-    explicit DaikonDatabase(size_t maxmemory = 0)
-        : maxmemory_(maxmemory) {}
+    explicit DaikonDatabase(size_t maxmemory = 0, bool mem_op = true)
+        : maxmemory_(maxmemory), has_active_del_(mem_op) {}
 
     void SetMaxMemory(size_t mem) { maxmemory_ = mem; }
     size_t GetMaxMemory() const { return maxmemory_; }
@@ -97,6 +97,7 @@ class DaikonDatabase {
    private:
     core::DBase db_;
     size_t maxmemory_;
+    const bool has_active_del_ = true;
 
     bool WillExceedLimit(int64_t delta) {
         if (maxmemory_ == 0) return false;

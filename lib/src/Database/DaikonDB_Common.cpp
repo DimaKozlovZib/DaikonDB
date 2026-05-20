@@ -18,7 +18,7 @@ results::ViewResult DaikonDatabase::Type(std::string_view key) {
 }
 
 results::IntResult DaikonDatabase::Del(const std::vector<std::string_view>& keys) {
-    db_.ExpireCycle(3);
+    if (has_active_del_) db_.ExpireCycle(3);
 
     int64_t deleted = 0;
     for (const auto& key : keys) {
@@ -138,7 +138,7 @@ results::IntResult DaikonDatabase::MemoryUsage(std::string_view key) {
 }
 
 results::StatusResult DaikonDatabase::Expire(std::string_view key, int64_t seconds) {
-    if (seconds < 0) false;
+    if (seconds < 0) return false;
     return db_.Expire(key, std::chrono::seconds(seconds));
 }
 

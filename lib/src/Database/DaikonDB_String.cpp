@@ -10,7 +10,7 @@
 namespace daikon {
 
 DbResult<results::StatusResult> DaikonDatabase::Set(std::string_view key, std::string_view value) {
-    db_.ExpireCycle(3);
+    if (has_active_del_) db_.ExpireCycle(3);
 
     auto* obj = db_.Get(key);
     auto* str = obj ? obj->AsString() : nullptr;
@@ -41,7 +41,7 @@ DbResult<results::IntResult> DaikonDatabase::Strlen(std::string_view key) {
 }
 
 DbResult<void> DaikonDatabase::Append(std::string_view key, std::string_view value) {
-    db_.ExpireCycle(3);
+    if (has_active_del_) db_.ExpireCycle(3);
 
     auto* obj = db_.Get(key);
     auto* str = obj ? obj->AsString() : nullptr;
