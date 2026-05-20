@@ -1,9 +1,11 @@
 #pragma once
 
 #include <charconv>
+#include <concepts>
 #include <optional>
 #include <span>
 #include <string>
+#include <vector>
 
 #include "../Commands.h"
 
@@ -21,11 +23,20 @@ struct OptionalInt64 {};
 struct GeoPoint {};
 
 template <typename ElemTag>
-struct VarArgs {};
+struct VarArgs {
+    using IsVarArgsTag = void;
+    using ElementTag = ElemTag;
+};
 
 } // namespace daikon::parsing::args
 
-namespace daikon::parsing::traits{
+namespace daikon::parsing::traits {
+
+template <typename T>
+concept ParsableArg = requires(std::span<const std::string_view> args, size_t& idx) {
+    typename T::value_type;
+    { T::Extract(args, idx) } -> std::same_as<std::optional<typename T::value_type>>;
+};
 
 template <typename Tag>
 struct ArgTraits;
@@ -57,7 +68,7 @@ struct ArgTraits<args::Int64> {
         auto [ptr, ec] = std::from_chars(args[idx].data(), args[idx].data() + args[idx].size(), v);
         if (ec != std::errc{}) return std::nullopt;
         ++idx;
-        return v;
+        return value_type{v};
     }
 };
 
@@ -78,8 +89,16 @@ template <>
 struct ArgTraits<args::Unit> {
     using value_type = std::string_view;
     static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
-        if (idx >= args.size()) return args::Unit::kDefaultValue; 
-        return args[idx++];
+        if (idx >= args.size()) {
+            return args::Unit::kDefaultValue;
+        }
+        std::string s;
+        for (char c : args[idx])
+            s += std::tolower(static_cast<unsigned char>(c));
+        if (s == "m" || s == "km" || s == "mi" || s == "ft") {
+            return args[idx++];
+        }
+        return args::Unit::kDefaultValue;
     }
 };
 
@@ -97,14 +116,14 @@ struct ArgTraits<args::BeforeAfter> {
 
 template <>
 struct ArgTraits<args::OptionalInt64> {
-    using value_type = std::optional<int64_t>;
+    using value_type = int64_t;
     static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
-        if (idx >= args.size()) return value_type{};
+        if (idx >= args.size()) return -1;
         int64_t v;
         auto [ptr, ec] = std::from_chars(args[idx].data(), args[idx].data() + args[idx].size(), v);
         if (ec != std::errc{}) return std::nullopt;
         ++idx;
-        return value_type{v};
+        return v;
     }
 };
 
@@ -132,13 +151,13 @@ struct ArgTraits<args::VarArgs<ElemTag>> {
     using value_type = std::vector<typename ArgTraits<ElemTag>::value_type>;
 
     static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
-        value_type vec;
+        value_type res;
         while (idx < args.size()) {
             auto elem = ArgTraits<ElemTag>::Extract(args, idx);
             if (!elem) return std::nullopt;
-            vec.push_back(std::move(*elem));
+            res.push_back(std::move(*elem));
         }
-        return vec;
+        return res;
     }
 };
 

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <charconv>
+#include <concepts>
 #include <optional>
 #include <span>
 #include <string>
-#include <type_traits>
 #include <unordered_set>
 
 #include "../Commands.h"
@@ -14,13 +14,9 @@
 namespace daikon::parsing {
 
 template <typename T>
-struct IsVarArgs : std::false_type {};
-
-template <typename ElemTag>
-struct IsVarArgs<::daikon::parsing::args::VarArgs<ElemTag>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool IsVarArgs_v = IsVarArgs<T>::value;
+concept IsVarArgsTag = requires {
+    typename T::IsVarArgsTag;
+};
 
 class CommandParser {
    public:
@@ -29,6 +25,7 @@ class CommandParser {
 
    private:
     template <typename Command, typename... Tags>
+        requires(traits::ParsableArg<traits::ArgTraits<Tags>> && ...)
     std::optional<commands::Command> TryParse(std::span<const std::string_view> args) {
         size_t idx = 0;
 
@@ -39,7 +36,7 @@ class CommandParser {
         },
                                  maybe_vals);
 
-        constexpr bool kHasVarargs = (IsVarArgs_v<Tags> || ...);
+        constexpr bool kHasVarargs = (IsVarArgsTag<Tags> || ...);
         if (!kHasVarargs && idx != args.size()) all_ok = false;
 
         if (!all_ok) return std::nullopt;
@@ -61,4 +58,5 @@ class Tokenizer {
 
     static std::vector<RawCommand> GetTokens(std::string_view input);
 };
+
 } // namespace daikon::parsing
