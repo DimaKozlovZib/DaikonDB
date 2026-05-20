@@ -1,19 +1,21 @@
-#include "../../includes/core/DaikonDB.h"
-#include "../../includes/core/types/List.h"
-#include "../../includes/core/results.h" 
-
-#include <cstdint>     
-#include <string>      
-#include <string_view> 
-#include <vector>    
-#include <utility> 
-#include <optional> 
-#include <expected>
 #include <cstddef>
+#include <cstdint>
+#include <expected>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+#include "../../includes/core/DaikonDB.h"
+#include "../../includes/core/results.h"
+#include "../../includes/core/types/List.h"
 
 namespace daikon {
 
 DbResult<void> DaikonDatabase::Lpush(std::string_view key, const std::vector<std::string_view>& values) {
+    db_.ExpireCycle(3);
+
     auto* obj = db_.Get(key);
     auto* list = obj ? obj->AsList() : nullptr;
     if (obj && !list) return std::unexpected(LogicError::kWrongType);
@@ -35,6 +37,8 @@ DbResult<void> DaikonDatabase::Lpush(std::string_view key, const std::vector<std
 }
 
 DbResult<void> DaikonDatabase::Rpush(std::string_view key, const std::vector<std::string_view>& values) {
+    db_.ExpireCycle(3);
+
     auto* obj = db_.Get(key);
     auto* list = obj ? obj->AsList() : nullptr;
     if (obj && !list) return std::unexpected(LogicError::kWrongType);
@@ -108,6 +112,8 @@ DbResult<results::ViewResult> DaikonDatabase::Lindex(std::string_view key, int64
 }
 
 DbResult<void> DaikonDatabase::Lset(std::string_view key, int64_t index, std::string_view value) {
+    db_.ExpireCycle(3);
+
     auto* obj = db_.Get(key);
     if (!obj) return std::unexpected(LogicError::kNotFound);
     auto* list = obj->AsList();
@@ -120,6 +126,8 @@ DbResult<void> DaikonDatabase::Lset(std::string_view key, int64_t index, std::st
 
 DbResult<results::IntResult> DaikonDatabase::Linsert(std::string_view key, bool before,
                                                      std::string_view pivot, std::string_view value) {
+    db_.ExpireCycle(3);
+
     auto* obj = db_.Get(key);
 
     if (!obj) return std::unexpected(LogicError::kNotFound);

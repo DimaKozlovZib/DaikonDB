@@ -1,19 +1,20 @@
+#include <cstddef>
+#include <cstdint>
+#include <expected>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "../../includes/core/DaikonDB.h"
+#include "../../includes/core/results.h"
 #include "../../includes/core/types/Set.h"
-
-#include "../../includes/core/results.h"        
-
-#include <string_view>              
-#include <vector>                    
-#include <expected>                        
-#include <cstdint>                    
-#include <cstddef>      
-#include <utility>             
 
 namespace daikon {
 
 DbResult<results::IntResult> DaikonDatabase::Sadd(std::string_view key,
                                                   const std::vector<std::string_view>& members) {
+    db_.ExpireCycle(3);
+
     auto* obj = db_.Get(key);
     auto* set = obj ? obj->AsSet() : nullptr;
     if (obj && !set) return std::unexpected(LogicError::kWrongType);
@@ -115,6 +116,8 @@ DbResult<results::ListViewResult> DaikonDatabase::Sdiff(const std::vector<std::s
 
 DbResult<results::StatusResult> DaikonDatabase::Smove(std::string_view source, std::string_view destination,
                                                       std::string_view member) {
+    db_.ExpireCycle(3);
+
     auto* src = db_.Get(source);
     auto* dst = db_.Get(destination);
 

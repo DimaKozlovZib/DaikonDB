@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "../Commands.h"
-#include "storage/database.h"
 #include "results.h"
+#include "storage/database.h"
 #include "types/Geo.h"
 #include "types/List.h"
 #include "types/Set.h"
@@ -62,7 +62,7 @@ class DaikonDatabase {
     DbResult<std::vector<std::optional<std::pair<double, double>>>> Geopos(std::string_view key,
                                                                            const std::vector<std::string_view>& members);
     DbResult<double> Geodist(std::string_view key, std::string_view member1,
-                                         std::string_view member2, std::string_view unit = "m");
+                             std::string_view member2, std::string_view unit = "m");
     DbResult<results::ListViewResult> Geosearch(std::string_view key, double lon, double lat,
                                                 double radius, std::string_view unit, bool asc,
                                                 int64_t count = -1);
@@ -87,7 +87,10 @@ class DaikonDatabase {
         return db_.GetTotalRamUsage();
     }
 
-    bool IsMemoryFull() {
+    bool IsMemoryFull() { 
+        if (maxmemory_ > 0 && db_.GetTotalRamUsage() >= maxmemory_) {
+            db_.ExpireCycle(20);
+        }
         return maxmemory_ > 0 && db_.GetTotalRamUsage() >= maxmemory_;
     }
 
@@ -95,12 +98,17 @@ class DaikonDatabase {
     core::DBase db_;
     size_t maxmemory_;
 
-    bool WillExceedLimit(int64_t delta) const {
+    bool WillExceedLimit(int64_t delta) {
         if (maxmemory_ == 0) return false;
+
+        if ((db_.GetTotalRamUsage() + delta) > static_cast<int64_t>(maxmemory_)) {
+            db_.ExpireCycle(50);
+        }
+
         return (db_.GetTotalRamUsage() + delta) > static_cast<int64_t>(maxmemory_);
     }
 
-    int64_t PredictKeyOverhead(std::string_view key) {
+    int64_t PredictKeyOverhead(std::string_view key) const {
         return static_cast<int64_t>(key.size() + 32);
     }
 };

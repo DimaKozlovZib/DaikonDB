@@ -45,6 +45,7 @@ set(TEST_SOURCES
     Tests/test_memory.cpp
     Tests/test_daikondb.cpp
     Tests/test_matchpat.cpp
+    Tests/test_tokens.cpp
 )
 
 add_executable(daikon_tests ${TEST_SOURCES})

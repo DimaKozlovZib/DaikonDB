@@ -1,20 +1,22 @@
-#include "../../includes/core/DaikonDB.h"
-#include "../../includes/core/types/Geo.h"
-#include "../../includes/core/results.h" 
-
-#include <string_view>
-#include <vector>
-#include <expected>
 #include <cstdint>
-#include <utility>
+#include <expected>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "../../includes/Commands.h"
+#include "../../includes/core/DaikonDB.h"
+#include "../../includes/core/results.h"
+#include "../../includes/core/types/Geo.h"
 
 namespace daikon {
 
 DbResult<void> DaikonDatabase::Geoadd(std::string_view key,
                                       const std::vector<commands::GeoPoint>& points) {
+    db_.ExpireCycle(3);
+
     auto* obj = db_.Get(key);
     auto* geo = obj ? obj->AsGeo() : nullptr;
     if (obj && !geo) return std::unexpected(LogicError::kWrongType);
@@ -81,6 +83,8 @@ DbResult<results::ListViewResult> DaikonDatabase::Geosearchstore(
     double lon, double lat, double radius,
     std::string_view unit, bool asc,
     int64_t count) {
+    db_.ExpireCycle(3);
+
     auto* src_obj = db_.Get(source);
     if (!src_obj) return std::unexpected(LogicError::kNotFound);
 

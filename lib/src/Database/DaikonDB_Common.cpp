@@ -18,6 +18,8 @@ results::ViewResult DaikonDatabase::Type(std::string_view key) {
 }
 
 results::IntResult DaikonDatabase::Del(const std::vector<std::string_view>& keys) {
+    db_.ExpireCycle(3);
+
     int64_t deleted = 0;
     for (const auto& key : keys) {
         if (db_.Delete(key)) ++deleted;
