@@ -30,8 +30,7 @@ CommandParser::Dispatch(std::string_view cmd, std::span<const std::string_view> 
     if (IsEquals(cmd, kGet)) return TryParse<GetArgs, Key>(args);
     if (IsEquals(cmd, kStrlen)) return TryParse<StrlenArgs, Key>(args);
     if (IsEquals(cmd, kAppend)) return TryParse<AppendArgs, Key, Value>(args);
-    if (IsEquals(cmd, kExpire)) return TryParse<ExpireArgs, Key, Int64>(args);
-    if (IsEquals(cmd, kTtl)) return TryParse<TtlArgs, Key>(args);
+
 
     // List
     if (IsEquals(cmd, kLpush)) return TryParse<LpushArgs, Key, VarArgs<Value>>(args);
@@ -68,7 +67,10 @@ CommandParser::Dispatch(std::string_view cmd, std::span<const std::string_view> 
     if (IsEquals(cmd, kKeys)) return TryParse<KeysArgs, Value>(args);
     if (IsEquals(cmd, kFlushdb)) return TryParse<FlushdbArgs>(args);
     if (IsEquals(cmd, kDbsize)) return TryParse<DbsizeArgs>(args);
-
+    if (IsEquals(cmd, kExists)) return TryParse<ExistsArgs, VarArgs<Key>>(args);
+    if (IsEquals(cmd, kExpire)) return TryParse<ExpireArgs, Key, Int64>(args);
+    if (IsEquals(cmd, kTtl)) return TryParse<TtlArgs, Key>(args);
+    
     if (IsEquals(cmd, kConfig) && args.size() >= 1) {
         if (IsEquals(args[0], kSet) && args.size() == 3)
             return TryParse<ConfigSetArgs, Value, Int64>(args.subspan(1));

@@ -16,83 +16,86 @@
 #include "../../parsing/Types.h"
 #include "output.h"
 
-#define DEFINE_HANDLE(Cmd, Method, ...)                                                      \
-    inline void Handle(DaikonDatabase& db, const commands::Cmd##Args& a, std::ostream& os) { \
-        detail::WriteResult(db.Method(__VA_ARGS__), os);                                     \
-    }
-
 namespace daikon::handlers {
-DEFINE_HANDLE(Get, Get, a.key)
-DEFINE_HANDLE(Strlen, Strlen, a.key)
-DEFINE_HANDLE(Ttl, Ttl, a.key)
-DEFINE_HANDLE(Llen, Llen, a.key)
-DEFINE_HANDLE(Smembers, Smembers, a.key)
-DEFINE_HANDLE(Scard, Scard, a.key)
 
-DEFINE_HANDLE(Sunion, Sunion, a.keys)
-DEFINE_HANDLE(Sinter, Sinter, a.keys)
-DEFINE_HANDLE(Sdiff, Sdiff, a.keys)
+using std::ostream;
+using namespace daikon::commands;
+using detail::WriteResult;
+using DDB = DaikonDatabase;
 
-DEFINE_HANDLE(Set, Set, a.key, a.value)
-DEFINE_HANDLE(Append, Append, a.key, a.value)
-DEFINE_HANDLE(Expire, Expire, a.key, a.seconds)
-DEFINE_HANDLE(Lpush, Lpush, a.key, a.values)
-DEFINE_HANDLE(Rpush, Rpush, a.key, a.values)
-DEFINE_HANDLE(Sadd, Sadd, a.key, a.members)
-DEFINE_HANDLE(Srem, Srem, a.key, a.members)
-DEFINE_HANDLE(Geopos, Geopos, a.key, a.members)
-DEFINE_HANDLE(Geoadd, Geoadd, a.key, a.points)
+inline void Handle(DDB& db, const SetArgs& a, ostream& os) { WriteResult(db.Set(a.key, a.value), os); }
+inline void Handle(DDB& db, const GetArgs& a, ostream& os) { WriteResult(db.Get(a.key), os); }
+inline void Handle(DDB& db, const StrlenArgs& a, ostream& os) { WriteResult(db.Strlen(a.key), os); }
+inline void Handle(DDB& db, const AppendArgs& a, ostream& os) { WriteResult(db.Append(a.key, a.value), os); }
 
-DEFINE_HANDLE(Lindex, Lindex, a.key, a.index)
-DEFINE_HANDLE(Lset, Lset, a.key, a.index, a.value)
-DEFINE_HANDLE(Sismember, Sismember, a.key, a.member)
+inline void Handle(DDB& db, const LpushArgs& a, ostream& os) { WriteResult(db.Lpush(a.key, a.values), os); }
+inline void Handle(DDB& db, const RpushArgs& a, ostream& os) { WriteResult(db.Rpush(a.key, a.values), os); }
+inline void Handle(DDB& db, const LpopArgs& a, ostream& os) { WriteResult(db.Lpop(a.key, a.count.value_or(1)), os); }
+inline void Handle(DDB& db, const RpopArgs& a, ostream& os) { WriteResult(db.Rpop(a.key, a.count.value_or(1)), os); }
+inline void Handle(DDB& db, const LlenArgs& a, ostream& os) { WriteResult(db.Llen(a.key), os); }
+inline void Handle(DDB& db, const LrangeArgs& a, ostream& os) { WriteResult(db.Lrange(a.key, a.start, a.stop), os); }
+inline void Handle(DDB& db, const LindexArgs& a, ostream& os) { WriteResult(db.Lindex(a.key, a.index), os); }
+inline void Handle(DDB& db, const LsetArgs& a, ostream& os) { WriteResult(db.Lset(a.key, a.index, a.value), os); }
+inline void Handle(DDB& db, const LinsertArgs& a, ostream& os) { WriteResult(db.Linsert(a.key, a.before, a.pivot, a.value), os); }
 
-DEFINE_HANDLE(Lpop, Lpop, a.key, a.count.value_or(1))
-DEFINE_HANDLE(Rpop, Rpop, a.key, a.count.value_or(1))
-DEFINE_HANDLE(Lrange, Lrange, a.key, a.start, a.stop)
-DEFINE_HANDLE(Linsert, Linsert, a.key, a.before, a.pivot, a.value)
-DEFINE_HANDLE(Smove, Smove, a.source, a.destination, a.member)
+inline void Handle(DDB& db, const SaddArgs& a, ostream& os) { WriteResult(db.Sadd(a.key, a.members), os); }
+inline void Handle(DDB& db, const SremArgs& a, ostream& os) { WriteResult(db.Srem(a.key, a.members), os); }
+inline void Handle(DDB& db, const SismemberArgs& a, ostream& os) { WriteResult(db.Sismember(a.key, a.member), os); }
+inline void Handle(DDB& db, const SmembersArgs& a, ostream& os) { WriteResult(db.Smembers(a.key), os); }
+inline void Handle(DDB& db, const ScardArgs& a, ostream& os) { WriteResult(db.Scard(a.key), os); }
+inline void Handle(DDB& db, const SunionArgs& a, ostream& os) { WriteResult(db.Sunion(a.keys), os); }
+inline void Handle(DDB& db, const SinterArgs& a, ostream& os) { WriteResult(db.Sinter(a.keys), os); }
+inline void Handle(DDB& db, const SdiffArgs& a, ostream& os) { WriteResult(db.Sdiff(a.keys), os); }
+inline void Handle(DDB& db, const SmoveArgs& a, ostream& os) { WriteResult(db.Smove(a.source, a.destination, a.member), os); }
 
-DEFINE_HANDLE(Geodist, Geodist, a.key, a.member1, a.member2, a.unit)
-DEFINE_HANDLE(Geosearch, Geosearch, a.key, a.longitude, a.latitude, a.radius, a.unit, a.asc, a.count.value_or(-1))
-DEFINE_HANDLE(Geosearchstore, Geosearchstore, a.destination, a.source, a.longitude, a.latitude, a.radius, a.unit, a.asc, a.count.value_or(-1))
-
-#undef DEFINE_HANDLE
-
-inline void Handle(DaikonDatabase& db, const commands::TypeArgs& a, std::ostream& os) { os << db.Type(a.key).data; }
-inline void Handle(DaikonDatabase& db, const commands::DelArgs& a, std::ostream& os) { os << db.Del(a.keys).value; }
-inline void Handle(DaikonDatabase& db, const commands::ExistsArgs& a, std::ostream& os) { os << db.Exists(a.keys).value; }
-inline void Handle(DaikonDatabase& db, const commands::KeysArgs& a, std::ostream& os) {
-    auto res = db.Keys(a.pattern);
-    if (res.elements.empty())
-        os << "(empty array)";
-    else
-        for (size_t i = 0; i < res.elements.size(); ++i)
-            os << (i ? " " : "") << res.elements[i];
+inline void Handle(DDB& db, const GeoaddArgs& a, ostream& os) { WriteResult(db.Geoadd(a.key, a.points), os); }
+inline void Handle(DDB& db, const GeoposArgs& a, ostream& os) { WriteResult(db.Geopos(a.key, a.members), os); }
+inline void Handle(DDB& db, const GeodistArgs& a, ostream& os) { WriteResult(db.Geodist(a.key, a.member1, a.member2, a.unit), os); }
+inline void Handle(DDB& db, const GeosearchArgs& a, ostream& os) {
+    WriteResult(db.Geosearch(a.key, a.longitude, a.latitude, a.radius, a.unit, a.asc, a.count.value_or(-1)), os);
 }
-inline void Handle(DaikonDatabase& db, const commands::FlushdbArgs&, std::ostream& os) {
+inline void Handle(DDB& db, const GeosearchstoreArgs& a, ostream& os) {
+    WriteResult(db.Geosearchstore(a.destination, a.source, a.longitude, a.latitude, a.radius, a.unit, a.asc, a.count.value_or(-1)), os);
+}
+
+inline void Handle(DDB& db, const ExpireArgs& a, ostream& os) { WriteResult(db.Expire(a.key, a.seconds), os); }
+inline void Handle(DDB& db, const TtlArgs& a, ostream& os) { WriteResult(db.Ttl(a.key), os); }
+inline void Handle(DDB& db, const TypeArgs& a, ostream& os) { os << db.Type(a.key).data; }
+inline void Handle(DDB& db, const DelArgs& a, ostream& os) { os << db.Del(a.keys).value; }
+inline void Handle(DDB& db, const ExistsArgs& a, ostream& os) { os << db.Exists(a.keys).value; }
+inline void Handle(DDB& db, const FlushdbArgs&, ostream& os) {
     db.Flushdb();
     os << "OK";
 }
-inline void Handle(DaikonDatabase& db, const commands::DbsizeArgs&, std::ostream& os) { os << db.Dbsize().value; }
-inline void Handle(DaikonDatabase& db, const commands::MemoryUsageArgs& a, std::ostream& os) {
+inline void Handle(DDB& db, const DbsizeArgs&, ostream& os) { os << db.Dbsize().value; }
+
+inline void Handle(DDB& db, const KeysArgs& a, ostream& os) {
+    auto res = db.Keys(a.pattern);
+    if (res.elements.empty()) return void(os << "(empty array)");
+    for (size_t i = 0; i < res.elements.size(); ++i)
+        os << (i ? " " : "") << res.elements[i];
+}
+
+inline void Handle(DDB& db, const MemoryUsageArgs& a, ostream& os) {
     auto res = db.MemoryUsage(a.key);
     if (res.value > 0)
         os << res.value;
     else
         os << (res.value == 0 ? "(nil)" : "ERR key not found");
 }
-inline void Handle(DaikonDatabase& db, const commands::ConfigSetArgs& a, std::ostream& os) {
-    if (a.parameter == "maxmemory") {
-        db.SetMaxMemory(static_cast<size_t>(a.value));
-        os << "OK";
-    } else
-        os << "ERR unknown config param";
-}
-inline void Handle(DaikonDatabase& db, const commands::ConfigGetArgs& a, std::ostream& os) {
+
+inline void Handle(DDB& db, const ConfigSetArgs& a, ostream& os) {
     if (a.parameter == "maxmemory")
-        os << db.GetMaxMemory();
+        WriteResult(db.ConfigSetMaxmemory(a.value), os);
     else
-        os << "ERR unknown config param";
+        os << "ERR Unknown option";
 }
+
+inline void Handle(DDB& db, const ConfigGetArgs& a, ostream& os) {
+    if (a.parameter == "maxmemory")
+        os << db.ConfigGetMaxmemory().value;
+    else
+        os << "ERR Unknown option";
+}
+
 } // namespace daikon::handlers

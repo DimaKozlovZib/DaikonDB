@@ -29,7 +29,8 @@ class CommandParser {
     std::optional<commands::Command> TryParse(std::span<const std::string_view> args) {
         size_t idx = 0;
 
-        auto maybe_vals = std::make_tuple(traits::ArgTraits<Tags>::Extract(args, idx)...);
+        std::tuple<std::optional<typename traits::ArgTraits<Tags>::value_type>...> maybe_vals{
+            traits::ArgTraits<Tags>::Extract(args, idx)...};
 
         bool all_ok = std::apply([](auto&... args) {
             return (args.has_value() && ...);
