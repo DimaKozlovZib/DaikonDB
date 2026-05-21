@@ -50,12 +50,19 @@ class CommandParser {
 };
 
 class Tokenizer {
-   public:
+public:
     struct RawCommand {
-        std::vector<std::string_view> tokens;
+        std::span<const std::string_view> tokens;
     };
 
-    static std::optional<std::vector<RawCommand>> GetTokens(std::string_view input);
+    std::optional<std::span<const RawCommand>> GetTokens(std::string_view input);
+
+private:
+    void Clear();
+
+    std::vector<std::string_view> tokens_storage_;
+    std::vector<RawCommand> commands_storage_;
+    std::vector<std::pair<size_t, size_t>> command_boundaries_;
 };
 
 } // namespace daikon::parsing

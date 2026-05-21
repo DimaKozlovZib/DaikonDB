@@ -1,13 +1,13 @@
+#include <cctype>
+#include <cstddef>
 #include <optional>
 #include <span>
 #include <string_view>
-#include <cstddef>
-#include <cctype> 
 
-#include "../../includes/parsing/Parsing.h"
 #include "../../includes/Commands.h"
-#include "../../includes/parsing/Types.h"
 #include "../../includes/parsing/CommandNames.h"
+#include "../../includes/parsing/Parsing.h"
+#include "../../includes/parsing/Types.h"
 
 namespace daikon::parsing {
 
@@ -51,8 +51,8 @@ CommandParser::Dispatch(std::string_view cmd, std::span<const std::string_view> 
     if (current_cmd == kGeoadd) return TryParse<GeoaddArgs, Key, VarArgs<GeoPoint>>(args);
     if (current_cmd == kGeopos) return TryParse<GeoposArgs, Key, VarArgs<Value>>(args);
     if (current_cmd == kGeodist) return TryParse<GeodistArgs, Key, Value, Value, Unit>(args);
-    if (current_cmd == kGeosearch) return TryParse<GeosearchArgs, Key, Double, Double, Double, Unit, AscDesc, OptionalInt64>(args);
-    if (current_cmd == kGeosearchstore) return TryParse<GeosearchstoreArgs, Key, Key, Double, Double, Double, Unit, AscDesc, OptionalInt64>(args);
+    if (current_cmd == kGeosearch) return TryParse<GeosearchArgs, Key, FromLonLat, Double, Double, ByRadius, Double, Unit, AscDesc, GeoCount>(args);
+    if (current_cmd == kGeosearchstore) return TryParse<GeosearchstoreArgs, Key, Key, FromLonLat, Double, Double, ByRadius, Double, Unit, AscDesc, GeoCount>(args);
 
     // Generic
     if (current_cmd == kType) return TryParse<TypeArgs, Key>(args);

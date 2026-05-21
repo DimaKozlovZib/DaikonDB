@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "../Commands.h"
+#include "CommandNames.h"
 
 namespace daikon::parsing::args {
 
@@ -20,8 +21,6 @@ struct Unit {
 };
 struct BeforeAfter {};
 struct OptionalInt64 {};
-struct GeoPoint {};
-struct AscDesc {};
 
 template <typename ElemTag>
 struct VarArgs {
@@ -29,9 +28,17 @@ struct VarArgs {
     using ElementTag = ElemTag;
 };
 
+struct GeoPoint {};
+struct AscDesc {};
+struct FromLonLat {};
+struct ByRadius {};
+struct GeoCount {};
+
 } // namespace daikon::parsing::args
 
 namespace daikon::parsing::traits {
+
+using dci = daikon::commands::names::CommandInfo;
 
 template <typename T>
 concept ParsableArg = requires(std::span<const std::string_view> args, size_t& idx) {
@@ -109,9 +116,9 @@ struct ArgTraits<args::AscDesc> {
     static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx >= args.size()) return true;
         auto s = args[idx++];
-        
-        if (s == "ASC" || s == "asc") return true;
-        if (s == "DESC" || s == "desc") return false;
+
+        if (dci::IsEquals(s, "ASC")) return true;
+        if (dci::IsEquals(s, "DESC")) return false;
 
         return std::nullopt;
     }
@@ -123,8 +130,8 @@ struct ArgTraits<args::BeforeAfter> {
     static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
         if (idx >= args.size()) return std::nullopt;
         auto s = args[idx++];
-        if (s == "BEFORE") return true;
-        if (s == "AFTER") return false;
+        if (dci::IsEquals(s, "BEFORE")) return true;
+        if (dci::IsEquals(s, "AFTER")) return false;
         return std::nullopt;
     }
 };
@@ -173,6 +180,50 @@ struct ArgTraits<args::VarArgs<ElemTag>> {
             res.push_back(std::move(*elem));
         }
         return res;
+    }
+};
+
+template <>
+struct ArgTraits<args::FromLonLat> {
+    using value_type = uint8_t;
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
+        if (idx >= args.size()) return std::nullopt;
+        if (dci::IsEquals(args[idx], "FROMLONLAT")) {
+            ++idx;
+            return 1;
+        }
+        return std::nullopt;
+    }
+};
+
+template <>
+struct ArgTraits<args::ByRadius> {
+    using value_type = uint8_t;
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
+        if (idx >= args.size()) return std::nullopt;
+        if (dci::IsEquals(args[idx], "BYRADIUS")) {
+            ++idx;
+            return 1;
+        }
+        return std::nullopt;
+    }
+};
+
+template <>
+struct ArgTraits<args::GeoCount> {
+    using value_type = int64_t;
+    static std::optional<value_type> Extract(std::span<const std::string_view> args, size_t& idx) {
+        if (idx >= args.size()) return -1;
+
+        if (dci::IsEquals(args[idx], "COUNT")) {
+            ++idx;
+            if (idx >= args.size()) return std::nullopt;
+
+            auto val = ArgTraits<args::Int64>::Extract(args, idx);
+            if (!val) return std::nullopt;
+            return *val;
+        }
+        return -1;
     }
 };
 

@@ -4,6 +4,7 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <cstdint>
 
 namespace daikon::commands {
 struct SetArgs {
@@ -125,8 +126,10 @@ struct GeodistArgs {
 };
 struct GeosearchArgs {
     std::string_view key;
+    uint8_t coord;
     double longitude;
     double latitude;
+    uint8_t type_zone;
     double radius;
     std::string_view unit;
     bool asc;
@@ -135,8 +138,10 @@ struct GeosearchArgs {
 struct GeosearchstoreArgs {
     std::string_view destination;
     std::string_view source;
+    uint8_t coord;
     double longitude;
     double latitude;
+     uint8_t type_zone;
     double radius;
     std::string_view unit;
     bool asc;

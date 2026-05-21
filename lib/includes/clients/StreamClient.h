@@ -38,7 +38,7 @@ class StreamClient : public DaikonDatabase {
 
    private:
     void ExecuteCommand(const std::string& line, std::ostream& out) {
-        auto op_raw_cmds = parsing::Tokenizer::GetTokens(line);
+        auto op_raw_cmds = tokenizer_.GetTokens(line);
         if (!op_raw_cmds.has_value()) {
             std::cerr << "ERR syntax error: unclosed quotes or invalid escape sequence" << std::endl;
             return;
@@ -48,7 +48,7 @@ class StreamClient : public DaikonDatabase {
             return;
         }
 
-        auto raw_cmds = std::move(op_raw_cmds.value());
+        auto raw_cmds = op_raw_cmds.value();
 
         for (size_t i = 0; i < raw_cmds.size(); ++i) {
             const auto& tokens = raw_cmds[i].tokens;
@@ -91,6 +91,7 @@ class StreamClient : public DaikonDatabase {
     }
 
     parsing::CommandParser parser_;
+    parsing::Tokenizer tokenizer_;
 };
 
 } // namespace daikon

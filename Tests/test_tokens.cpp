@@ -1,31 +1,34 @@
 #include <gtest/gtest.h>
-
 #include <utility>
-
 #include "../lib/includes/parsing/Parsing.h"
 
 using namespace daikon::parsing;
 
-TEST(TokenizerTest, BasicCommands) {
-    auto cmds_opt = Tokenizer::GetTokens("PING");
-    ASSERT_TRUE(cmds_opt.has_value());
-    auto cmds = std::move(cmds_opt.value());
+class TokenizerTest : public ::testing::Test {
+protected: 
+    Tokenizer tokenizer_;
+};
+
+TEST_F(TokenizerTest, BasicCommands) {
+    auto cmds_span = tokenizer_.GetTokens("PING");
+    ASSERT_TRUE(cmds_span.has_value());
+    auto cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 1);
     EXPECT_EQ(cmds[0].tokens[0], "PING");
 
-    cmds_opt = Tokenizer::GetTokens("SET key value");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("SET key value");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 3);
     EXPECT_EQ(cmds[0].tokens[0], "SET");
     EXPECT_EQ(cmds[0].tokens[1], "key");
     EXPECT_EQ(cmds[0].tokens[2], "value");
 
-    cmds_opt = Tokenizer::GetTokens("LPUSH mylist a b c");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("LPUSH mylist a b c");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 5);
     EXPECT_EQ(cmds[0].tokens[0], "LPUSH");
@@ -34,9 +37,9 @@ TEST(TokenizerTest, BasicCommands) {
     EXPECT_EQ(cmds[0].tokens[3], "b");
     EXPECT_EQ(cmds[0].tokens[4], "c");
 
-    cmds_opt = Tokenizer::GetTokens("   HSET   hash field   value   ");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("   HSET   hash field   value   ");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 4);
     EXPECT_EQ(cmds[0].tokens[0], "HSET");
@@ -45,28 +48,28 @@ TEST(TokenizerTest, BasicCommands) {
     EXPECT_EQ(cmds[0].tokens[3], "value");
 }
 
-TEST(TokenizerTest, QuotedTokens) {
-    auto cmds_opt = Tokenizer::GetTokens("SET \"hello world\" 42");
-    ASSERT_TRUE(cmds_opt.has_value());
-    auto cmds = std::move(cmds_opt.value());
+TEST_F(TokenizerTest, QuotedTokens) {
+    auto cmds_span = tokenizer_.GetTokens("SET \"hello world\" 42");
+    ASSERT_TRUE(cmds_span.has_value());
+    auto cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 3);
     EXPECT_EQ(cmds[0].tokens[0], "SET");
     EXPECT_EQ(cmds[0].tokens[1], "hello world");
     EXPECT_EQ(cmds[0].tokens[2], "42");
 
-    cmds_opt = Tokenizer::GetTokens("SET \"\" empty");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("SET \"\" empty");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 3);
     EXPECT_EQ(cmds[0].tokens[0], "SET");
     EXPECT_EQ(cmds[0].tokens[1], "");
     EXPECT_EQ(cmds[0].tokens[2], "empty");
 
-    cmds_opt = Tokenizer::GetTokens("LPUSH \"list name\" \"element 1\" \"element 2\"");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("LPUSH \"list name\" \"element 1\" \"element 2\"");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 4);
     EXPECT_EQ(cmds[0].tokens[0], "LPUSH");
@@ -74,9 +77,9 @@ TEST(TokenizerTest, QuotedTokens) {
     EXPECT_EQ(cmds[0].tokens[2], "element 1");
     EXPECT_EQ(cmds[0].tokens[3], "element 2");
 
-    cmds_opt = Tokenizer::GetTokens("GEOADD \"city:1\" 13.36 52.51 Berlin");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("GEOADD \"city:1\" 13.36 52.51 Berlin");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 5);
     EXPECT_EQ(cmds[0].tokens[0], "GEOADD");
@@ -86,10 +89,10 @@ TEST(TokenizerTest, QuotedTokens) {
     EXPECT_EQ(cmds[0].tokens[4], "Berlin");
 }
 
-TEST(TokenizerTest, MultipleCommandsWithSemicolon) {
-    auto cmds_opt = Tokenizer::GetTokens("SET a 1; GET a");
-    ASSERT_TRUE(cmds_opt.has_value());
-    auto cmds = std::move(cmds_opt.value());
+TEST_F(TokenizerTest, MultipleCommandsWithSemicolon) {
+    auto cmds_span = tokenizer_.GetTokens("SET a 1; GET a");
+    ASSERT_TRUE(cmds_span.has_value());
+    auto cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 2);
     EXPECT_EQ(cmds[0].tokens.size(), 3);
     EXPECT_EQ(cmds[0].tokens[0], "SET");
@@ -99,9 +102,9 @@ TEST(TokenizerTest, MultipleCommandsWithSemicolon) {
     EXPECT_EQ(cmds[1].tokens[0], "GET");
     EXPECT_EQ(cmds[1].tokens[1], "a");
 
-    cmds_opt = Tokenizer::GetTokens("LPUSH list 1 2; LRANGE list 0 -1; DEL list");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("LPUSH list 1 2; LRANGE list 0 -1; DEL list");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 3);
     EXPECT_EQ(cmds[0].tokens.size(), 4);
     EXPECT_EQ(cmds[1].tokens.size(), 4);
@@ -109,21 +112,21 @@ TEST(TokenizerTest, MultipleCommandsWithSemicolon) {
     EXPECT_EQ(cmds[2].tokens.size(), 2);
     EXPECT_EQ(cmds[2].tokens[0], "DEL");
 
-    cmds_opt = Tokenizer::GetTokens("SET \"hello;world\" x;GET \"hello;world\"");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("SET \"hello;world\" x;GET \"hello;world\"");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 2);
     EXPECT_EQ(cmds[0].tokens[1], "hello;world");
     EXPECT_EQ(cmds[1].tokens[1], "hello;world");
 
-    cmds_opt = Tokenizer::GetTokens(";;;");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens(";;;");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     EXPECT_TRUE(cmds.empty());
 
-    cmds_opt = Tokenizer::GetTokens("PING;PONG;ECHO hi");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("PING;PONG;ECHO hi");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 3);
     EXPECT_EQ(cmds[0].tokens[0], "PING");
     EXPECT_EQ(cmds[1].tokens[0], "PONG");
@@ -131,71 +134,71 @@ TEST(TokenizerTest, MultipleCommandsWithSemicolon) {
     EXPECT_EQ(cmds[2].tokens[1], "hi");
 }
 
-TEST(TokenizerTest, EdgeCases) {
-    auto cmds_opt = Tokenizer::GetTokens("");
-    ASSERT_TRUE(cmds_opt.has_value());
-    auto cmds = std::move(cmds_opt.value());
+TEST_F(TokenizerTest, EdgeCases) {
+    auto cmds_span = tokenizer_.GetTokens("");
+    ASSERT_TRUE(cmds_span.has_value());
+    auto cmds = cmds_span.value();
     EXPECT_TRUE(cmds.empty());
 
-    cmds_opt = Tokenizer::GetTokens("   ");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("   ");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     EXPECT_TRUE(cmds.empty());
 
-    cmds_opt = Tokenizer::GetTokens(";");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens(";");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     EXPECT_TRUE(cmds.empty());
 
-    cmds_opt = Tokenizer::GetTokens("SET a b;   ; GET c");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("SET a b;   ; GET c");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 2);
     EXPECT_EQ(cmds[0].tokens[0], "SET");
     EXPECT_EQ(cmds[1].tokens[0], "GET");
 
-    cmds_opt = Tokenizer::GetTokens("KEYS *");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("KEYS *");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 2);
     EXPECT_EQ(cmds[0].tokens[0], "KEYS");
     EXPECT_EQ(cmds[0].tokens[1], "*");
 }
 
-TEST(TokenizerTest, MixedSpacingAndNewlines) {
-    auto cmds_opt = Tokenizer::GetTokens("SADD set   a\tb\tc\r\nd");
-    ASSERT_TRUE(cmds_opt.has_value());
-    auto cmds = std::move(cmds_opt.value());
+TEST_F(TokenizerTest, MixedSpacingAndNewlines) {
+    auto cmds_span = tokenizer_.GetTokens("SADD set   a\tb\tc\r\nd");
+    ASSERT_TRUE(cmds_span.has_value());
+    auto cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens.size(), 6);
     EXPECT_EQ(cmds[0].tokens[5], "d");
 
-    cmds_opt = Tokenizer::GetTokens("   ;   PING   ;   ");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("   ;   PING   ;   ");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 1);
     EXPECT_EQ(cmds[0].tokens[0], "PING");
 
-    cmds_opt = Tokenizer::GetTokens("CONFIG SET maxmemory 1048576; CONFIG GET maxmemory");
-    ASSERT_TRUE(cmds_opt.has_value());
-    cmds = std::move(cmds_opt.value());
+    cmds_span = tokenizer_.GetTokens("CONFIG SET maxmemory 1048576; CONFIG GET maxmemory");
+    ASSERT_TRUE(cmds_span.has_value());
+    cmds = cmds_span.value();
     ASSERT_EQ(cmds.size(), 2);
     EXPECT_EQ(cmds[0].tokens[1], "SET");
     EXPECT_EQ(cmds[0].tokens[2], "maxmemory");
     EXPECT_EQ(cmds[1].tokens[1], "GET");
 }
 
-TEST(TokenizerTest, SyntaxErrors) {
-    auto cmds_opt = Tokenizer::GetTokens("SET \"unclosed quote");
-    EXPECT_FALSE(cmds_opt.has_value());
+TEST_F(TokenizerTest, SyntaxErrors) {
+    auto cmds_span = tokenizer_.GetTokens("SET \"unclosed quote");
+    EXPECT_FALSE(cmds_span.has_value());
 
-    cmds_opt = Tokenizer::GetTokens("GET \"key with \"inner\" quote\"");
-    EXPECT_FALSE(!cmds_opt.has_value());
+    cmds_span = tokenizer_.GetTokens("GET \"key with \"inner\" quote\"");
+    EXPECT_TRUE(cmds_span.has_value());
 
-    cmds_opt = Tokenizer::GetTokens("SET \"hello\" \"world");
-    EXPECT_FALSE(cmds_opt.has_value());
+    cmds_span = tokenizer_.GetTokens("SET \"hello\" \"world");
+    EXPECT_FALSE(cmds_span.has_value());
 
-    cmds_opt = Tokenizer::GetTokens("\"quote at start\"");
-    EXPECT_FALSE(!cmds_opt.has_value());
+    cmds_span = tokenizer_.GetTokens("\"quote at start\"");
+    EXPECT_TRUE(cmds_span.has_value());
 }
