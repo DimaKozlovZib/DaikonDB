@@ -25,11 +25,11 @@ DbResult<void> DaikonDatabase::Geoadd(std::string_view key,
         int64_t delta = PredictKeyOverhead(key) + core::types::GeoObject::MemoryView::EstimateCreateWithPoints(points);
         if (WillExceedLimit(delta)) return std::unexpected(LogicError::kOom);
 
-        auto newGeo = db_.CreateObject<core::types::GeoObject>();
+        auto new_geo = db_.CreateObject<core::types::GeoObject>();
         for (const auto& pt : points)
-            newGeo->AsGeo()->Add(pt.longitude, pt.latitude, pt.member);
+            new_geo->AsGeo()->Add(pt.longitude, pt.latitude, pt.member);
 
-        db_.Set(key, std::move(newGeo));
+        db_.Set(key, std::move(new_geo));
         return {};
     }
 

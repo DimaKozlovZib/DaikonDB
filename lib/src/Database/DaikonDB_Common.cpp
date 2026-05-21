@@ -8,6 +8,7 @@
 
 #include "../../includes/core/results.h"
 #include "core/DaikonDB.h"
+#include "../../includes/core/types/BaseDataObject.h"
 
 namespace daikon {
 
